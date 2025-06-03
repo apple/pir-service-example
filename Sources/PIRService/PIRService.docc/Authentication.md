@@ -24,7 +24,7 @@ that different level of details can be provided based on the user tier.
 7. The system does not know which user tier is associated with which public key, so it sends the User Token to the
    authentication server.
 8. Authentication server verifies the User Token and returns the public key that is associated with the User Tier. The
-   system verifies that the returned public key is present in the Token Issuer Directory and it is valid based in the
+   system verifies that the returned public key is present in the Token Issuer Directory and it is valid based on the
    current time.
 9. The system constructs a Privacy Pass token request using the specific public key. The token request is sent along
    with the User Token to the authentication server.
@@ -33,7 +33,7 @@ that different level of details can be provided based on the user tier.
     * the token request uses the public key that is associated with the right user tier,
 
     and issues the token response that the system uses to get a Privacy Pass token.
-11. When a PIR request is made, the system attached an unused Privacy Pass token to the request. The PIR node can use
+11. When a PIR request is made, the system attaches an unused Privacy Pass token to the request. The PIR node can use
     the public key to verify that the token is valid and that assures that the request is authorized.
 12. Response to the PIR request is returned to the system.
 

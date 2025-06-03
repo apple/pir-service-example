@@ -4,8 +4,8 @@ Learn about the common errors that the device logs and why they happen.
 
 ## Overview
 
-While using the example service or when developing your own service, you will most probably encounter one of the errors
-that will be listed below. This page gives more details about the errors, like why they happen, what they mean, and how
+While using the example service or when developing your own service, you may encounter one of the common errors
+listed below. This page gives more details about these errors, like why they happen, what they mean, and how
 to work around them.
 
 ### How to look for errors
@@ -20,7 +20,7 @@ You can use the Console app to see on-device logs. Search for error messages fro
 
 ```
 "The request timed out." UserInfo={NSLocalizedDescription=The request timed out.,
-NSErrorFailingURLKey=http://MacBook-Pro.local:8080/.well-known/private-token-issuer-director
+NSErrorFailingURLKey=http://MacBook-Pro.local:8080/.well-known/private-token-issuer-directory
 ```
 
 **Reason:**
@@ -69,11 +69,16 @@ Device issued a request to the configuration endpoint (`/config`), but did not f
 was looking for.
 
 **Workaround:**
-Double-check that the service has usecases configured the way the device expects them. Usecase names should be:
-* `<bundleIdentifier>.block`
-* `<bundleIdentifier>.identity`
+Double-check that the service has usecases configured the way the device expects them. Usecase names for Live Caller ID Lookup should be:
+* `<app_extension_bundle_identifier>.block`
+* `<app_extension_bundle_identifier>.identity`
 
-where `<bundleIdentifier>` is replaced with bundle identifier of your Live Caller ID Lookup extension.
+In the above, replace `<app_extension_bundle_identifier>` with your app extension's bundle identifier.
+
+And usecase name for NEURLFilter should be:
+* `<app_bundle_identifier>.url.filtering`
+
+In the above, replace `<app_bundle_identifier>` with your application's bundle identifier.
 
 #### No token key found with key id
 
@@ -102,8 +107,9 @@ you restarted the service, which means that new keys were generated, and the exa
 therefore making the cached tokens invalid.
 
 **Workaround:**
-Once the device runs out of cached tokens, it will fetch new ones. One way to speed up the process is to call
-[refreshPIRParameters(forExtensionWithIdentifier:)](https://developer.apple.com/documentation/sms_and_call_reporting/livecalleridlookupmanager/4418043-refreshpirparameters).
+Once the device runs out of cached tokens, it will fetch new ones. One way to speed up the process is to explicitly refresh the PIR parameters.
+* For example, for Live Caller ID Lookup, call [refreshPIRParameters(forExtensionWithIdentifier:)](https://developer.apple.com/documentation/sms_and_call_reporting/livecalleridlookupmanager/4418043-refreshpirparameters).
+* For NEURLFilter, see [NEURLFilter API documentation](https://developer.apple.com/documentation/networkextension/neurlfiltermanager).
 
 #### Evaluation key not found
 
@@ -123,7 +129,7 @@ A real service should persist the evaluation key, but the example service only s
 copy of the evaluation key is gone after you restart the example service.
 
 **Workaround:**
-The device will periodically refetch the configuration from the server and will notice the missing evaluation key. You
-can call
-[refreshPIRParameters(forExtensionWithIdentifier:)](https://developer.apple.com/documentation/sms_and_call_reporting/livecalleridlookupmanager/4418043-refreshpirparameters)
-to let system know that it should refetch the configuration immediately.
+The device will periodically refetch the configuration from the server and will notice the missing evaluation key. You can also force the system to refresh configuration by calling the appropriate refresh API.
+* For Live Caller ID Lookup, you can call [refreshPIRParameters(forExtensionWithIdentifier:)](https://developer.apple.com/documentation/sms_and_call_reporting/livecalleridlookupmanager/4418043-refreshpirparameters).
+* For NEURLFilter, refer to [NEURLFilter API documentation](https://developer.apple.com/documentation/networkextension/neurlfiltermanager).
+

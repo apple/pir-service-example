@@ -1,12 +1,10 @@
-# Setting up the HTTP endpoints for Live Caller ID Lookup
+# Setting up the HTTP endpoints
 
 Learn about the required endpoints that the system expects from your service.
 
 ## Overview
 
-Your client side app needs your
-[serviceURL](https://developer.apple.com/documentation/sms_and_call_reporting/livecalleridlookupextensioncontext/4365180-serviceurl)
-so the system can fetch information from your server. Communication between the system and server uses Protocol
+Communication between the system and server uses Protocol
 Buffer (Protobuf) messages over HTTP. For the Protobuf schema please see [Homomorphic Encryption
 Protobuf](https://github.com/apple/swift-homomorphic-encryption-protobuf).
 
