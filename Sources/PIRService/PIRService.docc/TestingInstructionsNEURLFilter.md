@@ -175,7 +175,7 @@ self.shards = try (0..<shardCount).map { shardIndex in
 }
 ```
 The `name` will be used by the device to identify the dataset. In this example, we assume that the bundle identifier of
-the application is `com.example.apple-samplecode.SimpleURLFilter`. Then the system will try to fetch the URL 
+the application is `com.example.apple-samplecode.SimpleURLFilter`. Then the system will try to fetch the URL
 information from `com.example.apple-samplecode.SimpleURLFilter.url.filtering`.
 
 After the configuration file is as it should be, it is time to run the example service:
@@ -193,9 +193,9 @@ option.
 Use the `NEURLFilterManager` API in your filter app to create the URL filter configuration and manage your URL filter.  Create the URL filter configuration to let the system know how to talk to your PIR server and Privacy Pass issuer.  Use the `setConfiguration()` function to create the URL configuration with the required attributes
 
 ```swift
-public func setConfiguration(pirServerURL: URL, 
-                             pirPrivacyPassIssuerURL: URL?, 
-                             pirAuthenticationToken: String, 
+public func setConfiguration(pirServerURL: URL,
+                             pirPrivacyPassIssuerURL: URL?,
+                             pirAuthenticationToken: String,
                              controlProviderBundleIdentifier: String) throws
 ```
 

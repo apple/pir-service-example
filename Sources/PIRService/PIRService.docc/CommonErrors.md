@@ -132,4 +132,3 @@ copy of the evaluation key is gone after you restart the example service.
 The device will periodically refetch the configuration from the server and will notice the missing evaluation key. You can also force the system to refresh configuration by calling the appropriate refresh API.
 * For Live Caller ID Lookup, you can call [refreshPIRParameters(forExtensionWithIdentifier:)](https://developer.apple.com/documentation/sms_and_call_reporting/livecalleridlookupmanager/4418043-refreshpirparameters).
 * For NEURLFilter, refer to [NEURLFilter API documentation](https://developer.apple.com/documentation/networkextension/neurlfiltermanager).
-
