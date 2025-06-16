@@ -11,7 +11,7 @@ callers and display identity information on the incoming call screen.
   <img alt="Overview of the Live Caller ID Lookup" src="https://github.com/apple/pir-service-example/raw/main/Sources/PIRService/PIRService.docc/Resources/overview@2x.png">
 </picture>
 
-[NEURLFilter](https://developer.apple.com/documentation/networkextension/neurlfiltermanager) is a new feature for iOS and MacOS that allows the system
+[NEURLFilter](https://developer.apple.com/documentation/networkextension/neurlfiltermanager) is a new feature for iOS and macOS that allows the system
 to communicate with a third party service to privately check if a requested URL should be allowed or not. This allows your app to implement URL filtering in a privacy preserving manner.
 
 This repository provides a functional server backend to test the Live Caller ID Lookup and NEURLFilter features.
