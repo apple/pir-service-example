@@ -193,6 +193,12 @@ struct PIRServiceControllerTests {
             {
                 Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Response()
             }
+
+            func processOprf(request _: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_OPRFRequest) async throws
+                -> Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Response
+            {
+                Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Response()
+            }
         }
 
         let usecaseStore = UsecaseStore()

@@ -1,4 +1,4 @@
-// Copyright 2024 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2025 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,11 +40,11 @@ struct AppContext: IdentifiedRequestContext, AuthenticatedRequestContext, Platfo
     }
 }
 
-func loadUsecase(from path: String, shardCount: Int) throws -> Usecase {
+func loadUsecase(usecase: ServerConfiguration.Usecase) throws -> Usecase {
     do {
-        return try PirUsecase<MulPirServer<Bfv<UInt32>>>(from: path, shardCount: shardCount)
+        return try PirUsecase<MulPirServer<Bfv<UInt32>>>(usecase: usecase)
     } catch {
-        return try PirUsecase<MulPirServer<Bfv<UInt64>>>(from: path, shardCount: shardCount)
+        return try PirUsecase<MulPirServer<Bfv<UInt64>>>(usecase: usecase)
     }
 }
 

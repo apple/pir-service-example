@@ -1,4 +1,4 @@
-// Copyright 2024 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2025 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -174,6 +174,62 @@ public struct PIRClient<PIRClient: IndexPirClient> {
         }
     }
 
+    /// Request a value from the service for a Symmetric PIR usecase.
+    ///
+    /// When `allowKeyRotation` is `true`, this will also:
+    /// - Fetch the configuration if there’s none.
+    /// - Generate a new secret key and evaluation key and upload the evaluation key to the server if there’s none.
+    /// - Parameters:
+    ///   - keywords: Keywords to request values for.
+    ///   - usecase: Name of the use case to query.
+    ///   - allowKeyRotation: Allow fetching missing configuration and uploading a new evaluation key when needed.
+    /// - Returns: An array with the same length as `keywords`, where each element is either the corresponding value or
+    /// `nil` to indicate the absence of a value.
+    public mutating func symmetricPirRequest(
+        keywords: [KeywordValuePair.Keyword],
+        usecase: String,
+        allowKeyRotation: Bool = true) async throws -> [KeywordValuePair.Value?]
+    {
+        guard let configuration = configCache[usecase] else {
+            if allowKeyRotation {
+                try await rotateKey(for: usecase)
+                return try await symmetricPirRequest(keywords: keywords, usecase: usecase, allowKeyRotation: false)
+            }
+            throw PIRClientError.missingConfiguration
+        }
+        let config = configuration.config
+        let symmetricPirClientConfig = try config.keywordPirParams.symmetricPirClientConfig.native()
+        let oprfClient = try OprfClient(symmetricPirClientConfig: symmetricPirClientConfig)
+        let oprfQueryContexts: [OprfQueryContext] = try keywords.map { keyword in
+            try oprfClient.queryContext(at: keyword)
+        }
+        let requests = Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Requests.with { requests in
+            requests.requests = oprfQueryContexts.map { queryContext in
+                Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Request.with { request in
+                    request.usecase = usecase
+                    request.oprfRequest = queryContext.query.proto()
+                }
+            }
+        }
+        let responses: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Responses = try await post(
+            path: "/queries",
+            body: requests)
+        let parsedOprfResponses: [OprfClient.ParsedOprfOutput] = try zip(responses.responses, oprfQueryContexts)
+            .map { response, queryContext in
+                let oprfResponse = try response.oprfResponse.native()
+                return try oprfClient.parse(oprfResponse: oprfResponse, with: queryContext)
+            }
+        let keywordPirResponses = try await request(
+            keywords: parsedOprfResponses.map(\.obliviousKeyword),
+            usecase: usecase,
+            allowKeyRotation: allowKeyRotation)
+        return try zip(keywordPirResponses, parsedOprfResponses).map { keywordPirResponse, oprfResponse in
+            try keywordPirResponse.map { entry in
+                try oprfClient.decrypt(encryptedEntry: entry, with: oprfResponse)
+            }
+        }
+    }
+
     private func keywordPIRClient(
         for keyword: KeywordValuePair.Keyword,
         config: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_PIRConfig,
@@ -182,8 +238,8 @@ public struct PIRClient<PIRClient: IndexPirClient> {
         let shardIndex = try config.shardIndex(for: keyword)
         let shardConfig = config.shardConfig(shardIndex: shardIndex)
         let evaluationKeyConfig = EvaluationKeyConfig()
-        return KeywordPirClient<PIRClient>(
-            keywordParameter: config.keywordPirParams.native(),
+        return try KeywordPirClient<PIRClient>(
+            keywordParameter: config.keywordPirParams.nativeWithSymmetricPirClientConfig(),
             pirParameter: shardConfig.native(
                 batchSize: Int(config.batchSize),
                 evaluationKeyConfig: evaluationKeyConfig),

@@ -28,6 +28,8 @@ protocol Usecase: Sendable {
         request: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Request,
         evaluationKey: Apple_SwiftHomomorphicEncryption_Api_Shared_V1_EvaluationKey) async throws
         -> Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Response
+    func processOprf(request: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_OPRFRequest) async throws
+        -> Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Response
 }
 
 extension Usecase {

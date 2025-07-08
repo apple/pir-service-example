@@ -14,8 +14,35 @@
 
 import Foundation
 import Logging
+import PrivateInformationRetrieval
 import ServiceLifecycle
 import UnixSignals
+
+struct SymmetricPirArguments: Codable, Hashable {
+    /// Error encountered on resolving SymmetricPirArguments.
+    struct ValidationError: Error {
+        let message: String
+    }
+
+    /// File path for key with which database will be encrypted.
+    ///
+    /// This is required, but is an Optional to allow for clearer error message.
+    let databaseEncryptionKeyFilePath: String?
+    /// Config for Symmetric PIR.
+    let configType: SymmetricPirConfigType?
+
+    func resolve() throws -> SymmetricPirConfig {
+        guard let databaseEncryptionKeyFilePath else {
+            throw ValidationError(message: "'databaseEncryptionKeyFilePath' is missing in symmetric PIR configuration.")
+        }
+        let secretKeyString = try String(contentsOfFile: databaseEncryptionKeyFilePath, encoding: .utf8)
+        guard let secretKey = Array(hexEncoded: secretKeyString) else {
+            throw ValidationError(message: "Invalid OPRF key.")
+        }
+        let configType = configType ?? .OPRF_P384_AES_GCM_192_NONCE_96_TAG_128
+        return try SymmetricPirConfig(oprfSecretKey: Secret(value: secretKey), configType: configType)
+    }
+}
 
 struct ServerConfiguration: Codable {
     struct Usecase: Codable {
@@ -23,6 +50,7 @@ struct ServerConfiguration: Codable {
         let fileStem: String
         let shardCount: Int
         let versionCount: Int?
+        let symmetricPirArguments: SymmetricPirArguments?
     }
 
     struct UserGroup: Codable {
@@ -100,7 +128,7 @@ actor ReloadService: Service {
                 try await usecaseStore.set(name: usecase.name, usecase: nil, versionCount: versionCount)
                 return
             }
-            let loaded = try loadUsecase(from: usecase.fileStem, shardCount: usecase.shardCount)
+            let loaded = try loadUsecase(usecase: usecase)
             try await usecaseStore.set(name: usecase.name, usecase: loaded, versionCount: versionCount)
         }
     }

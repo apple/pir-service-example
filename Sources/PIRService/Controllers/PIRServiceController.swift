@@ -1,4 +1,4 @@
-// Copyright 2024 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2025 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -123,38 +123,45 @@ struct PIRServiceController {
         }
 
         let responsesSequence = requests.requests.async.map { request in
-            var evaluationKey: Apple_SwiftHomomorphicEncryption_Api_Shared_V1_EvaluationKey?
-            if request.pirRequest.hasEvaluationKey {
-                evaluationKey = request.pirRequest.evaluationKey
-            } else {
-                let evaluationKeyConfigHash = request.pirRequest.evaluationKeyMetadata.identifier
-                let evaluationKeyStoreKey = Self.persistKey(
-                    user: context.userIdentifier,
-                    configHash: evaluationKeyConfigHash)
-                evaluationKey = try await evaluationKeyStore.get(
-                    key: evaluationKeyStoreKey,
-                    as: Protobuf<Apple_SwiftHomomorphicEncryption_Api_Shared_V1_EvaluationKey>.self)?.message
-            }
-
-            guard let evaluationKey else {
-                throw HTTPError(.badRequest, message: "Evaluation key not found")
-            }
-
-            let configId = Array(request.pirRequest.configurationHash)
-            guard let usecase = await usecases.get(
-                name: request.usecase,
-                configId: configId)
-            else {
-                if await (usecases.get(name: request.usecase)) != nil {
-                    throw HTTPError(
-                        .gone,
-                        message: "Configuration id: \(configId) is no longer available for usecase \(request.usecase).")
+            switch request.request {
+            case let .oprfRequest(oprfRequest):
+                guard let usecase = await usecases.get(name: request.usecase) else {
+                    throw HTTPError(.badRequest, message: "Unknown usecase: \(request.usecase)")
                 }
-                throw HTTPError(.badRequest, message: "Unknown usecase: \(request.usecase)")
+                return try await usecase.processOprf(request: oprfRequest)
+            case .pirRequest:
+                var evaluationKey: Apple_SwiftHomomorphicEncryption_Api_Shared_V1_EvaluationKey?
+                if request.pirRequest.hasEvaluationKey {
+                    evaluationKey = request.pirRequest.evaluationKey
+                } else {
+                    let evaluationKeyConfigHash = request.pirRequest.evaluationKeyMetadata.identifier
+                    let evaluationKeyStoreKey = Self.persistKey(
+                        user: context.userIdentifier,
+                        configHash: evaluationKeyConfigHash)
+                    evaluationKey = try await evaluationKeyStore.get(
+                        key: evaluationKeyStoreKey,
+                        as: Protobuf<Apple_SwiftHomomorphicEncryption_Api_Shared_V1_EvaluationKey>.self)?.message
+                }
+                guard let evaluationKey else {
+                    throw HTTPError(.badRequest, message: "Evaluation key not found")
+                }
+                let configId = Array(request.pirRequest.configurationHash)
+                guard let usecase = await usecases.get(
+                    name: request.usecase,
+                    configId: configId)
+                else {
+                    if await (usecases.get(name: request.usecase)) != nil {
+                        throw HTTPError(
+                            .gone,
+                            message: "Configuration id: \(configId) is not available for usecase \(request.usecase).")
+                    }
+                    throw HTTPError(.badRequest, message: "Unknown usecase: \(request.usecase)")
+                }
+                return try await usecase.process(request: request, evaluationKey: evaluationKey)
+            case .none:
+                throw HTTPError(.badRequest, message: "Unknown request type.")
             }
-            return try await usecase.process(request: request, evaluationKey: evaluationKey)
         }
-
         let responses: [Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Response] = try await .init(responsesSequence)
         return Protobuf(Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Responses.with { apiResponses in
             apiResponses.responses = responses

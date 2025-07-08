@@ -36,6 +36,20 @@ struct PIRServiceTests {
     }
 
     @Test
+    func testSymmetricPirRequest() async throws {
+        let usecaseStore = UsecaseStore()
+        try await usecaseStore.set(name: "test", usecase: ExampleUsecase.symmetric)
+        let app = try await buildApplication(usecaseStore: usecaseStore)
+        try await app.test(.live) { client in
+            var pirClient = PIRClient<MulPirClient<Bfv<UInt32>>>(connection: client)
+            let keywords: [KeywordValuePair.Keyword] = [.init("23".utf8), .init("27".utf8)]
+            let result = try await pirClient.symmetricPirRequest(keywords: keywords, usecase: "test")
+            // Values are same as keywords in this usecase.
+            #expect(result == keywords)
+        }
+    }
+
+    @Test
     func testRequestWithPrivacyPass() async throws {
         let usecaseStore = UsecaseStore()
         try await usecaseStore.set(name: "test", usecase: ExampleUsecase.hundred)

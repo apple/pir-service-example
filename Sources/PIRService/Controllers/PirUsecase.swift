@@ -1,4 +1,4 @@
-// Copyright 2024 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2025 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import Foundation
 import HomomorphicEncryption
 import HomomorphicEncryptionProtobuf
 import Hummingbird
@@ -33,28 +34,49 @@ extension LoadingError {
     }
 }
 
+enum SymmetricPirError: Error, Codable, Hashable {
+    case symmetricPirNotConfigured
+}
+
+extension SymmetricPirError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .symmetricPirNotConfigured:
+            "SymmetricPIR not configured."
+        }
+    }
+}
+
 struct PirUsecase<PirScheme: IndexPirServer>: Usecase {
     typealias Scheme = PirScheme.Scheme
     let context: Context<Scheme>
     let keywordParams: KeywordPirParameter
     let shards: [KeywordPirServer<PirScheme>]
+    let symmetricPirConfig: SymmetricPirConfig?
 
-    init(context: Context<Scheme>, keywordParams: KeywordPirParameter, shards: [KeywordPirServer<PirScheme>]) {
+    init(
+        context: Context<Scheme>,
+        keywordParams: KeywordPirParameter,
+        shards: [KeywordPirServer<PirScheme>],
+        symmetricPirConfig: SymmetricPirConfig? = nil)
+    {
         self.context = context
         self.keywordParams = keywordParams
         self.shards = shards
+        self.symmetricPirConfig = symmetricPirConfig
     }
 
-    init(from fileStem: String, shardCount: Int) throws {
-        let parameterPath = "\(fileStem)-0.params.txtpb"
+    init(usecase: ServerConfiguration.Usecase) throws {
+        let parameterPath = "\(usecase.fileStem)-0.params.txtpb"
         let params = try Apple_SwiftHomomorphicEncryption_Pir_V1_PirParameters(from: parameterPath)
         let encryptionParams: EncryptionParameters<Scheme> = try params.encryptionParameters.native()
         let context: Context<Scheme> = try Context(encryptionParameters: encryptionParams)
         self.context = context
-        self.keywordParams = params.keywordPirParams.native()
-        self.shards = try (0..<shardCount).map { shardIndex in
-            let parameterPath = "\(fileStem)-\(shardIndex).params.txtpb"
-            let databasePath = "\(fileStem)-\(shardIndex).bin"
+        self.keywordParams = try params.keywordPirParams.nativeWithSymmetricPirClientConfig()
+        self.symmetricPirConfig = try usecase.symmetricPirArguments?.resolve()
+        self.shards = try (0..<usecase.shardCount).map { shardIndex in
+            let parameterPath = "\(usecase.fileStem)-\(shardIndex).params.txtpb"
+            let databasePath = "\(usecase.fileStem)-\(shardIndex).bin"
             let pirParams = try Apple_SwiftHomomorphicEncryption_Pir_V1_PirParameters(from: parameterPath)
             let encryptionParams: EncryptionParameters<Scheme> = try pirParams.encryptionParameters.native()
             guard encryptionParams == context.encryptionParameters else {
@@ -70,7 +92,7 @@ struct PirUsecase<PirScheme: IndexPirServer>: Usecase {
                 algorithm: pirParams.algorithm.native(),
                 evaluationKeyConfig: pirParams.evaluationKeyConfig.native(),
                 pirParameter: pirParams.native(),
-                keywordPirParameter: pirParams.keywordPirParams.native())
+                keywordPirParameter: pirParams.keywordPirParams.nativeWithSymmetricPirClientConfig())
             return try KeywordPirServer(context: context, processed: processed)
         }
     }
@@ -132,5 +154,20 @@ struct PirUsecase<PirScheme: IndexPirServer>: Usecase {
 
     func evaluationKeyConfig() throws -> Apple_SwiftHomomorphicEncryption_V1_EvaluationKeyConfig {
         try shards.map(\.evaluationKeyConfig).union().proto(encryptionParameters: context.encryptionParameters)
+    }
+
+    @_specialize(where PirScheme == MulPirServer<Bfv<UInt32>>)
+    @_specialize(where PirScheme == MulPirServer<Bfv<UInt64>>)
+    func processOprf(request: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_OPRFRequest) async throws ->
+        Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Response
+    {
+        guard let symmetricPirConfig else {
+            throw SymmetricPirError.symmetricPirNotConfigured
+        }
+        let oprfResponse = try OprfServer(symmetricPirConfig: symmetricPirConfig).computeResponse(
+            query: request.native())
+        return Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Response.with { apiResponse in
+            apiResponse.oprfResponse = oprfResponse.proto()
+        }
     }
 }
