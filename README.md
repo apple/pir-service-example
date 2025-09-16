@@ -71,6 +71,42 @@ swift test --parallel
 > [!WARNING]
 > Runtimes may be slow in debug mode.
 
+### Database Reloading
+The PIR Service supports dynamic database reloading without requiring a full service restart. This allows you to update the database and configuration while the service continues running.
+
+#### Reloading Process
+1. **Update your input database**: Modify your input database file (e.g., `input.txtpb`) with new or updated entries.
+
+2. **Process the new database**: Run `PIRProcessDatabase` to generate the new database files:
+   ```sh
+   PIRProcessDatabase config.json
+   ```
+
+3. **Trigger reload**: Send a `SIGHUP` signal to the running PIR Service process:
+   ```sh
+   kill -SIGHUP <PID>
+   ```
+   
+   You can find the process ID using:
+   ```sh
+   ps aux | grep PIRService
+   ```
+
+#### Behavior
+- When the service receives a `SIGHUP` signal, it reloads the configuration file and all associated database files.
+- The service logs "Reloading configuration..." when starting the reload and "Reloading configuration completed." when finished.
+- The service maintains multiple versions of the database to ensure compatibility with clients using older PIR parameters.
+- Clients automatically fetch updated PIR parameters periodically, or you can explicitly call `RefreshPIR` to force an immediate update.
+
+#### Version Compatibility
+The service is designed to handle database updates gracefully:
+- When you update the database, new PIR parameters may be generated.
+- The service stores both new and old versions of the dataset.
+- Clients using old PIR parameters will continue to work with the previous version of the dataset.
+- As clients update their PIR parameters, they will automatically use the new dataset.
+
+For more details on maintaining PIR parameter compatibility across updates, see [Reusing PIR Parameters](https://swiftpackageindex.com/apple/swift-homomorphic-encryption/main/documentation/privateinformationretrieval/reusingpirparameters).
+
 ### Contributing
 If you would like to make a pull request to PIR Service Example, please run `pre-commit install`. Then each commit will run some basic formatting checks.
 
