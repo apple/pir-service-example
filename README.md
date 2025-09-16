@@ -86,7 +86,7 @@ The PIR Service supports dynamic database reloading without requiring a full ser
    ```sh
    kill -SIGHUP <PID>
    ```
-   
+
    You can find the process ID using:
    ```sh
    ps aux | grep PIRService
