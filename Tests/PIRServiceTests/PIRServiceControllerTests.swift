@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import ApplicationProtobuf
 import Foundation
 import HomomorphicEncryption
 import HomomorphicEncryptionProtobuf
@@ -19,7 +20,6 @@ import Hummingbird
 import HummingbirdTesting
 @testable import PIRService
 import PrivateInformationRetrieval
-import PrivateInformationRetrievalProtobuf
 import Testing
 import Util
 
@@ -85,14 +85,14 @@ struct PIRServiceControllerTests {
         let app = try await buildApplication(usecaseStore: usecaseStore)
         let user = UserIdentifier()
 
-        let configRequest = Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigRequest.with { configReq in
+        let configRequest = Apple_SwiftHomomorphicEncryption_Api_V1_ConfigRequest.with { configReq in
             configReq.usecases = ["test"]
         }
         try await app.test(.live) { client in
             try await client.execute(uri: "/config", userIdentifier: user, message: configRequest) { response in
                 #expect(response.status == .ok)
                 let configResponse = try response
-                    .message(as: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigResponse.self)
+                    .message(as: Apple_SwiftHomomorphicEncryption_Api_V1_ConfigResponse.self)
                 #expect(try configResponse.configs["test"] == exampleUsecase.config())
                 #expect(try configResponse.keyInfo[0].keyConfig == exampleUsecase.evaluationKeyConfig())
             }
@@ -111,7 +111,7 @@ struct PIRServiceControllerTests {
             for platform: Platform in [.macOS15, .macOS15_2, .iOS18, .iOS18_2] {
                 // No or wrong existing configId
                 for existingConfigId in [Data(), Data([UInt8(1), 2])] {
-                    let configRequest = Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigRequest.with { configReq in
+                    let configRequest = Apple_SwiftHomomorphicEncryption_Api_V1_ConfigRequest.with { configReq in
                         configReq.usecases = ["test"]
                         configReq.existingConfigIds = [existingConfigId]
                     }
@@ -125,13 +125,13 @@ struct PIRServiceControllerTests {
                         var expectedConfig = try exampleUsecase.config()
                         try expectedConfig.makeCompatible(with: platform)
                         let configResponse = try response
-                            .message(as: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigResponse.self)
+                            .message(as: Apple_SwiftHomomorphicEncryption_Api_V1_ConfigResponse.self)
                         #expect(configResponse.configs["test"] == expectedConfig)
                         #expect(try configResponse.keyInfo[0].keyConfig == exampleUsecase.evaluationKeyConfig())
                     }
                 }
                 // Existing configId
-                let configRequestWithConfigId = try Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigRequest
+                let configRequestWithConfigId = try Apple_SwiftHomomorphicEncryption_Api_V1_ConfigRequest
                     .with { configReq in
                         configReq.usecases = ["test"]
                         configReq.existingConfigIds = try [exampleUsecase.config().configID]
@@ -144,7 +144,7 @@ struct PIRServiceControllerTests {
                 { response in
                     #expect(response.status == .ok)
                     let configResponse = try response
-                        .message(as: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigResponse.self)
+                        .message(as: Apple_SwiftHomomorphicEncryption_Api_V1_ConfigResponse.self)
                     #expect(configResponse.configs["test"]?.reuseExistingConfig == true)
                     #expect(configResponse.configs["test"]?.pirConfig ==
                         Apple_SwiftHomomorphicEncryption_Api_Pir_V1_PIRConfig())
@@ -158,7 +158,7 @@ struct PIRServiceControllerTests {
     func compressedConfigFetch() async throws {
         // Mock usecase that has a large config with 10K randomized shardConfigs.
         struct TestUseCaseWithLargeConfig: Usecase {
-            let randomConfig: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Config
+            let randomConfig: Apple_SwiftHomomorphicEncryption_Api_V1_Config
 
             init() throws {
                 let shardConfigs = (0..<10000).map { _ in
@@ -172,13 +172,13 @@ struct PIRServiceControllerTests {
                 let pirConfg = Apple_SwiftHomomorphicEncryption_Api_Pir_V1_PIRConfig.with { pirConfig in
                     pirConfig.shardConfigs = shardConfigs
                 }
-                self.randomConfig = try Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Config.with { config in
+                self.randomConfig = try Apple_SwiftHomomorphicEncryption_Api_V1_Config.with { config in
                     config.pirConfig = pirConfg
                     config.configID = try pirConfg.sha256()
                 }
             }
 
-            func config() throws -> Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Config {
+            func config() throws -> Apple_SwiftHomomorphicEncryption_Api_V1_Config {
                 randomConfig
             }
 
@@ -187,17 +187,17 @@ struct PIRServiceControllerTests {
             }
 
             func process(
-                request _: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Request,
+                request _: Apple_SwiftHomomorphicEncryption_Api_V1_Request,
                 evaluationKey _: Apple_SwiftHomomorphicEncryption_Api_Shared_V1_EvaluationKey) async throws
-                -> Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Response
+                -> Apple_SwiftHomomorphicEncryption_Api_V1_Response
             {
-                Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Response()
+                Apple_SwiftHomomorphicEncryption_Api_V1_Response()
             }
 
             func processOprf(request _: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_OPRFRequest) async throws
-                -> Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Response
+                -> Apple_SwiftHomomorphicEncryption_Api_V1_Response
             {
-                Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Response()
+                Apple_SwiftHomomorphicEncryption_Api_V1_Response()
             }
         }
 
@@ -208,7 +208,7 @@ struct PIRServiceControllerTests {
         let app = try await buildApplication(usecaseStore: usecaseStore)
         let user = UserIdentifier()
 
-        let configRequest = Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigRequest.with { configReq in
+        let configRequest = Apple_SwiftHomomorphicEncryption_Api_V1_ConfigRequest.with { configReq in
             configReq.usecases = ["test"]
         }
 
@@ -226,7 +226,7 @@ struct PIRServiceControllerTests {
                 var compressedBody = response.body
                 #expect(compressedBody.readableBytes < uncompressedConfigSize)
                 let uncompressed = try compressedBody.decompress(with: .gzip())
-                let configResponse = try Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigResponse(
+                let configResponse = try Apple_SwiftHomomorphicEncryption_Api_V1_ConfigResponse(
                     serializedBytes: Array(buffer: uncompressed))
                 #expect(try configResponse.configs["test"] == exampleUsecase.config())
             }
