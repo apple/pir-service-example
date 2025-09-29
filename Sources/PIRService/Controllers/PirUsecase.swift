@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import ApplicationProtobuf
 import Foundation
 import HomomorphicEncryption
 import HomomorphicEncryptionProtobuf
 import Hummingbird
 import PrivateInformationRetrieval
-import PrivateInformationRetrievalProtobuf
 import Util
 
 enum LoadingError: Error {
@@ -100,9 +100,9 @@ struct PirUsecase<PirScheme: IndexPirServer>: Usecase {
     @_specialize(where PirScheme == MulPirServer<Bfv<UInt32>>)
     @_specialize(where PirScheme == MulPirServer<Bfv<UInt64>>)
     func process(
-        request: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Request,
+        request: Apple_SwiftHomomorphicEncryption_Api_V1_Request,
         evaluationKey: Apple_SwiftHomomorphicEncryption_Api_Shared_V1_EvaluationKey) async throws
-        -> Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Response
+        -> Apple_SwiftHomomorphicEncryption_Api_V1_Response
     {
         let pirRequest = request.pirRequest
         guard !pirRequest.hasShardID else {
@@ -112,12 +112,12 @@ struct PirUsecase<PirScheme: IndexPirServer>: Usecase {
         let query: KeywordPirServer<PirScheme>.Query = try pirRequest.query.native(context: context)
         let evaluationKey: EvaluationKey<Scheme> = try evaluationKey.evaluationKey.native(context: context)
         let response = try shard.computeResponse(to: query, using: evaluationKey)
-        return try Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Response.with { apiResponse in
+        return try Apple_SwiftHomomorphicEncryption_Api_V1_Response.with { apiResponse in
             apiResponse.pirResponse = try response.proto()
         }
     }
 
-    func config() throws -> Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Config {
+    func config() throws -> Apple_SwiftHomomorphicEncryption_Api_V1_Config {
         var pirConfig = Apple_SwiftHomomorphicEncryption_Api_Pir_V1_PIRConfig()
         pirConfig.encryptionParameters = try context.encryptionParameters.proto()
         guard let firstShard = shards.first else {
@@ -146,7 +146,7 @@ struct PirUsecase<PirScheme: IndexPirServer>: Usecase {
             pirConfig.shardConfigs = []
         }
 
-        return try Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Config.with { config in
+        return try Apple_SwiftHomomorphicEncryption_Api_V1_Config.with { config in
             config.pirConfig = pirConfig
             config.configID = try pirConfig.sha256()
         }
@@ -159,14 +159,14 @@ struct PirUsecase<PirScheme: IndexPirServer>: Usecase {
     @_specialize(where PirScheme == MulPirServer<Bfv<UInt32>>)
     @_specialize(where PirScheme == MulPirServer<Bfv<UInt64>>)
     func processOprf(request: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_OPRFRequest) async throws ->
-        Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Response
+        Apple_SwiftHomomorphicEncryption_Api_V1_Response
     {
         guard let symmetricPirConfig else {
             throw SymmetricPirError.symmetricPirNotConfigured
         }
         let oprfResponse = try OprfServer(symmetricPirConfig: symmetricPirConfig).computeResponse(
             query: request.native())
-        return Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Response.with { apiResponse in
+        return Apple_SwiftHomomorphicEncryption_Api_V1_Response.with { apiResponse in
             apiResponse.oprfResponse = oprfResponse.proto()
         }
     }

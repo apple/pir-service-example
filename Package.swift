@@ -51,7 +51,7 @@ let package = Package(
                 .product(name: "HomomorphicEncryptionProtobuf", package: "swift-homomorphic-encryption"),
                 .product(name: "Hummingbird", package: "hummingbird"),
                 .product(name: "HummingbirdCompression", package: "hummingbird-compression"),
-                .product(name: "PrivateInformationRetrievalProtobuf", package: "swift-homomorphic-encryption"),
+                .product(name: "ApplicationProtobuf", package: "swift-homomorphic-encryption"),
                 .product(name: "ServiceLifecycle", package: "swift-service-lifecycle"),
                 .product(name: "UnixSignals", package: "swift-service-lifecycle"),
             ],
@@ -68,7 +68,7 @@ let package = Package(
             name: "ConstructDatabase",
             dependencies: [
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
-                .product(name: "PrivateInformationRetrievalProtobuf", package: "swift-homomorphic-encryption"),
+                .product(name: "ApplicationProtobuf", package: "swift-homomorphic-encryption"),
                 .product(name: "SwiftProtobuf", package: "swift-protobuf"),
             ],
             exclude: ["protobuf"],
@@ -101,7 +101,7 @@ let package = Package(
                 "PrivacyPass", "Util",
                 .product(name: "HomomorphicEncryptionProtobuf", package: "swift-homomorphic-encryption"),
                 .product(name: "HummingbirdTesting", package: "hummingbird"),
-                .product(name: "PrivateInformationRetrievalProtobuf", package: "swift-homomorphic-encryption"),
+                .product(name: "ApplicationProtobuf", package: "swift-homomorphic-encryption"),
             ],
             swiftSettings: swiftSettings),
         .testTarget(
