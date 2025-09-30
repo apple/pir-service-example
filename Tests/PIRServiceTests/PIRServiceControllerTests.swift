@@ -26,7 +26,7 @@ import Util
 @Suite
 struct PIRServiceControllerTests {
     @Test
-    func testNoUserIdentifier() async throws {
+    func noUserIdentifier() async throws {
         // Error message returned by Hummingbird
         struct ErrorMessage: Codable {
             // swiftlint:disable:next nesting
@@ -47,7 +47,7 @@ struct PIRServiceControllerTests {
     }
 
     @Test
-    func testKeyUpload() async throws {
+    func keyUpload() async throws {
         let evaluationKeyStore = MemoryPersistDriver()
         let app = try await buildApplication(evaluationKeyStore: evaluationKeyStore)
         let user = UserIdentifier()
@@ -78,7 +78,7 @@ struct PIRServiceControllerTests {
     }
 
     @Test
-    func testConfigFetch() async throws {
+    func configFetch() async throws {
         let usecaseStore = UsecaseStore()
         let exampleUsecase = ExampleUsecase.hundred
         try await usecaseStore.set(name: "test", usecase: exampleUsecase)
@@ -100,7 +100,7 @@ struct PIRServiceControllerTests {
     }
 
     @Test
-    func testCachedConfigFetch() async throws {
+    func cachedConfigFetch() async throws {
         let usecaseStore = UsecaseStore()
         let exampleUsecase = ExampleUsecase.repeatedShardConfig
         try await usecaseStore.set(name: "test", usecase: exampleUsecase)
@@ -155,9 +155,11 @@ struct PIRServiceControllerTests {
     }
 
     @Test
-    func testCompressedConfigFetch() async throws {
+    func compressedConfigFetch() async throws {
         // Mock usecase that has a large config with 10K randomized shardConfigs.
         struct TestUseCaseWithLargeConfig: Usecase {
+            let randomConfig: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Config
+
             init() throws {
                 let shardConfigs = (0..<10000).map { _ in
                     Apple_SwiftHomomorphicEncryption_Api_Pir_V1_PIRShardConfig.with { shardConfig in
@@ -175,8 +177,6 @@ struct PIRServiceControllerTests {
                     config.configID = try pirConfg.sha256()
                 }
             }
-
-            let randomConfig: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Config
 
             func config() throws -> Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Config {
                 randomConfig

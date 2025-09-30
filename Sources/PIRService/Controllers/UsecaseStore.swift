@@ -1,4 +1,4 @@
-// Copyright 2024 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2025 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,17 +19,24 @@ actor UsecaseStore {
     typealias ConfigId = [UInt8]
 
     struct VersionedUsecases {
-        /// Newest configuration ID.
-        var latestConfigId: ConfigId? {
-            configIds.last
-        }
-
         /// Mapping from Configuration ID to usecase.
         var usecases: [ConfigId: Usecase]
         /// Configuration IDs, in order from oldest to newest.
         var configIds: [ConfigId]
         /// How many versions to store.
         var versionCount: Int
+
+        /// Newest configuration ID.
+        var latestConfigId: ConfigId? {
+            configIds.last
+        }
+
+        var usecase: Usecase? {
+            if let latestConfigId {
+                return usecases[latestConfigId]
+            }
+            return nil
+        }
 
         init(versionCount: Int) {
             self.usecases = [:]
@@ -59,13 +66,6 @@ actor UsecaseStore {
                 let removedConfigID = configIds.removeFirst()
                 usecases[removedConfigID] = nil
             }
-        }
-
-        var usecase: Usecase? {
-            if let latestConfigId {
-                return usecases[latestConfigId]
-            }
-            return nil
         }
     }
 

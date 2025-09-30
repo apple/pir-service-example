@@ -18,7 +18,7 @@ import Testing
 @Suite
 struct PrivacyPassPublicTests {
     @Test
-    func testIssuance() async throws {
+    func issuance() async throws {
         let privateKey = try PrivacyPass.PrivateKey()
         let publicKey = privateKey.publicKey
         let preparedRequest = try publicKey.request(challenge: [1, 2, 3])

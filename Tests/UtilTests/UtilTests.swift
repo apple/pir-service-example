@@ -18,7 +18,7 @@ import Util
 @Suite
 struct UtilTests {
     @Test
-    func testOsVersion() throws {
+    func osVersion() throws {
         let os18 = OsVersion(major: 18)
         let os18_0_1 = OsVersion(major: 18, patch: 1)
         let os18_1 = OsVersion(major: 18, minor: 1)

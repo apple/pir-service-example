@@ -13,8 +13,8 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 env:
-  SWIFTLINT_VERSION: 0.58.2
-  SWIFTFORMAT_VERSION: 0.55.5
+  SWIFTLINT_VERSION: 0.61.0
+  SWIFTFORMAT_VERSION: 0.58.1
 jobs:
   soundness:
     name: soundness

@@ -50,7 +50,7 @@ struct PIRServiceTests {
     }
 
     @Test
-    func testRequestWithPrivacyPass() async throws {
+    func requestWithPrivacyPass() async throws {
         let usecaseStore = UsecaseStore()
         try await usecaseStore.set(name: "test", usecase: ExampleUsecase.hundred)
         let userAuthenticator = UserAuthenticator()
@@ -65,7 +65,7 @@ struct PIRServiceTests {
     }
 
     @Test
-    func testRoutingToDifferentVersion() async throws {
+    func routingToDifferentVersion() async throws {
         let usecaseStore = UsecaseStore()
         // make sure that the configs for these two are different
         #expect(try ExampleUsecase.ten.config() != (ExampleUsecase.hundred.config()))
@@ -106,7 +106,7 @@ struct PIRServiceTests {
     }
 
     @Test
-    func testAddingAndRemovingUserTokens() async throws {
+    func addingAndRemovingUserTokens() async throws {
         let usecaseStore = UsecaseStore()
         try await usecaseStore.set(name: "test", usecase: ExampleUsecase.hundred)
         let userAuthenticator = UserAuthenticator()
@@ -151,7 +151,7 @@ struct PIRServiceTests {
     }
 
     @Test
-    func testRepeatedShardConfigs() async throws {
+    func repeatedShardConfigs() async throws {
         let usecaseStore = UsecaseStore()
         try await usecaseStore.set(name: "test", usecase: ExampleUsecase.repeatedShardConfig)
         let app = try await buildApplication(usecaseStore: usecaseStore)
@@ -173,7 +173,7 @@ struct PIRServiceTests {
     }
 
     @Test
-    func testPirConfigExtensions() throws {
+    func pirConfigExtensions() throws {
         var config = try ExampleUsecase.repeatedShardConfig.config()
         #expect(config.pirConfig.shardConfigs.isEmpty)
         #expect(config.pirConfig.pirShardConfigs.repeatedShardConfig.shardCount == 5)

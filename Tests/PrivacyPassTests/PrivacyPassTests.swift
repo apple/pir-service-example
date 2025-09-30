@@ -31,14 +31,14 @@ struct PrivacyPassTests {
     }
 
     @Test
-    func testConvertAndLoadPublicKey() throws {
+    func convertAndLoadPublicKey() throws {
         let privateKey = try PrivacyPass.PrivateKey()
         let spki = try privateKey.publicKey.spki()
         _ = try PrivacyPass.PublicKey(fromSPKI: spki)
     }
 
     @Test
-    func testIssuance() async throws {
+    func issuance() async throws {
         let privateKey = try PrivacyPass.PrivateKey()
         let publicKey = privateKey.publicKey
         let preparedRequest = try publicKey.request(challenge: [1, 2, 3])
@@ -50,7 +50,7 @@ struct PrivacyPassTests {
     }
 
     @Test
-    func testNoDoubleSpend() async throws {
+    func noDoubleSpend() async throws {
         let privateKey = try PrivacyPass.PrivateKey()
         let publicKey = privateKey.publicKey
         let preparedRequest = try publicKey.request(challenge: [1, 2, 3])
@@ -63,7 +63,7 @@ struct PrivacyPassTests {
     }
 
     @Test
-    func testVectors() async throws {
+    func vectors() async throws {
         struct TestVector: Codable {
             let skS: String
             let pkS: String
@@ -133,7 +133,7 @@ struct PrivacyPassTests {
     }
 
     @Test
-    func testChallengeVectors() throws {
+    func challengeVectors() throws {
         struct TestVector: Codable {
             // Note: we use implicitly unwrapped optionals, becuase test vector 6 from
             // https://www.rfc-editor.org/rfc/rfc9577#name-challenge-and-redemption-st

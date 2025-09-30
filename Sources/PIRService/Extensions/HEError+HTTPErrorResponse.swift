@@ -16,6 +16,7 @@ import HomomorphicEncryption
 import Hummingbird
 import PrivateInformationRetrieval
 
+extension HeError: @retroactive ResponseGenerator {}
 extension HomomorphicEncryption.HeError: Hummingbird.HTTPResponseError {
     public var status: HTTPResponse.Status {
         .badRequest
@@ -27,6 +28,7 @@ extension HomomorphicEncryption.HeError: Hummingbird.HTTPResponseError {
     }
 }
 
+extension PirError: @retroactive ResponseGenerator {}
 extension PrivateInformationRetrieval.PirError: Hummingbird.HTTPResponseError {
     public var status: HTTPResponse.Status {
         .badRequest

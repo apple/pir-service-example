@@ -39,7 +39,7 @@ enum SymmetricPirError: Error, Codable, Hashable {
 }
 
 extension SymmetricPirError: LocalizedError {
-    public var errorDescription: String? {
+    var errorDescription: String? {
         switch self {
         case .symmetricPirNotConfigured:
             "SymmetricPIR not configured."

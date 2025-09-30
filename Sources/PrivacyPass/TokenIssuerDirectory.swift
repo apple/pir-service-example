@@ -1,4 +1,4 @@
-// Copyright 2024 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2025 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,6 +34,11 @@ public struct TokenIssuerDirectory: Codable, Sendable {
         /// The time in seconds since the epoch (UNIX timestamp) when the token is valid.
         public let notBefore: UInt64?
 
+        /// Binary representation of the public key.
+        public var tokenKey: [UInt8]? {
+            Array(base64URLEncoded: tokenKeyBase64Url)
+        }
+
         /// Initialize a new TokenKey.
         /// - Parameters:
         ///   - tokenType: Token type.
@@ -43,11 +48,6 @@ public struct TokenIssuerDirectory: Codable, Sendable {
             self.tokenType = tokenType
             self.tokenKeyBase64Url = tokenKeyBase64Url
             self.notBefore = notBefore
-        }
-
-        /// Binary representation of the public key.
-        public var tokenKey: [UInt8]? {
-            Array(base64URLEncoded: tokenKeyBase64Url)
         }
     }
 
