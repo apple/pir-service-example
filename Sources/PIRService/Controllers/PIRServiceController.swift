@@ -66,11 +66,20 @@ struct PIRServiceController {
         }
 
         guard configRequest.existingConfigIds.isEmpty ||
-            configRequest.existingConfigIds.count == requestedUsecases.count
+            configRequest.existingConfigIds.count == configRequest.usecases.count
         else {
             throw HTTPError(.badRequest, message: """
                 Invalid existingConfigIds count \(configRequest.existingConfigIds.count). \
-                Expected 0 or \(requestedUsecases.count).
+                Expected 0 or \(configRequest.usecases.count).
+                """)
+        }
+
+        guard configRequest.usecases.isEmpty ||
+            configRequest.usecases.count == requestedUsecases.count
+        else {
+            throw await HTTPError(.notFound, message: """
+                One or more usecases not found. Requested usecases: \(configRequest.usecases).
+                Usecases available on the server: \(usecases.getAll().keys).
                 """)
         }
 

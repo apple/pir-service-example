@@ -25,18 +25,18 @@ import Util
 
 @Suite
 struct PIRServiceControllerTests {
-    @Test
-    func noUserIdentifier() async throws {
-        // Error message returned by Hummingbird
-        struct ErrorMessage: Codable {
-            // swiftlint:disable:next nesting
-            struct Details: Codable {
-                let message: String
-            }
-
-            let error: Details
+    // Error message returned by Hummingbird
+    struct ErrorMessage: Codable {
+        // swiftlint:disable:next nesting
+        struct Details: Codable {
+            let message: String
         }
 
+        let error: Details
+    }
+
+    @Test
+    func noUserIdentifier() async throws {
         let app = try await buildApplication()
         try await app.test(.live) { client in
             try await client.execute(uri: "/key", method: .post) { response in
@@ -229,6 +229,29 @@ struct PIRServiceControllerTests {
                 let configResponse = try Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigResponse(
                     serializedBytes: Array(buffer: uncompressed))
                 #expect(try configResponse.configs["test"] == exampleUsecase.config())
+            }
+        }
+    }
+
+    @Test
+    func configFetchWithUnknownUsecase() async throws {
+        let usecaseStore = UsecaseStore()
+        let exampleUsecase = ExampleUsecase.hundred
+        try await usecaseStore.set(name: "test", usecase: exampleUsecase)
+        let app = try await buildApplication(usecaseStore: usecaseStore)
+        let user = UserIdentifier()
+
+        let configRequest = Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigRequest.with { configReq in
+            configReq.usecases = ["other"]
+        }
+        try await app.test(.live) { client in
+            try await client.execute(uri: "/config", userIdentifier: user, message: configRequest) { response in
+                #expect(response.status == .notFound)
+                let errorMessage = try JSONDecoder().decode(ErrorMessage.self, from: response.body)
+                #expect(errorMessage.error.message == """
+                    One or more usecases not found. Requested usecases: ["other"].
+                    Usecases available on the server: ["test"].
+                    """)
             }
         }
     }
