@@ -13,6 +13,7 @@ callers and display identity information on the incoming call screen.
 
 [NEURLFilter](https://developer.apple.com/documentation/networkextension/neurlfiltermanager) is a new feature for iOS and macOS that allows the system
 to communicate with a third party service to privately check if a requested URL should be allowed or not. This allows your app to implement URL filtering in a privacy preserving manner.
+For more information on NEURLFilter, see the [WWDC 2025 talk](https://developer.apple.com/videos/play/wwdc2025/234/).
 
 This repository provides a functional server backend to test the Live Caller ID Lookup and NEURLFilter features.
 
