@@ -182,7 +182,8 @@ Now we do basically the same thing for the identity database: write the followin
   "sharding" : {
     "entryCountPerShard" : 5000
   },
-  "trialsPerShard": 5
+  "trialsPerShard": 5,
+  "databaseType": "keyword"
 }
 ```
 
