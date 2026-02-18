@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import ApplicationProtobuf
 import Foundation
 import HomomorphicEncryption
 import HTTPTypes
 import HummingbirdTesting
 import PrivacyPass
 import PrivateInformationRetrieval
-import PrivateInformationRetrievalProtobuf
 import SwiftProtobuf
 import Util
 
@@ -152,16 +152,16 @@ public struct PIRClient<PIRClient: IndexPirClient> {
             }
         }
 
-        let requests = Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Requests.with { requests in
+        let requests = Apple_SwiftHomomorphicEncryption_Api_V1_Requests.with { requests in
             requests.requests = pirRequests.map { pirRequest in
-                Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Request.with { request in
+                Apple_SwiftHomomorphicEncryption_Api_V1_Request.with { request in
                     request.usecase = usecase
                     request.pirRequest = pirRequest
                 }
             }
         }
 
-        let responses: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Responses = try await post(
+        let responses: Apple_SwiftHomomorphicEncryption_Api_V1_Responses = try await post(
             path: "/queries",
             body: requests)
 
@@ -203,15 +203,15 @@ public struct PIRClient<PIRClient: IndexPirClient> {
         let oprfQueryContexts: [OprfQueryContext] = try keywords.map { keyword in
             try oprfClient.queryContext(at: keyword)
         }
-        let requests = Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Requests.with { requests in
+        let requests = Apple_SwiftHomomorphicEncryption_Api_V1_Requests.with { requests in
             requests.requests = oprfQueryContexts.map { queryContext in
-                Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Request.with { request in
+                Apple_SwiftHomomorphicEncryption_Api_V1_Request.with { request in
                     request.usecase = usecase
                     request.oprfRequest = queryContext.query.proto()
                 }
             }
         }
-        let responses: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Responses = try await post(
+        let responses: Apple_SwiftHomomorphicEncryption_Api_V1_Responses = try await post(
             path: "/queries",
             body: requests)
         let parsedOprfResponses: [OprfClient.ParsedOprfOutput] = try zip(responses.responses, oprfQueryContexts)
@@ -239,7 +239,7 @@ public struct PIRClient<PIRClient: IndexPirClient> {
         let shardConfig = config.shardConfig(shardIndex: shardIndex)
         let evaluationKeyConfig = EvaluationKeyConfig()
         return try KeywordPirClient<PIRClient>(
-            keywordParameter: config.keywordPirParams.nativeWithSymmetricPirClientConfig(),
+            keywordParameter: config.keywordPirParams.native(),
             pirParameter: shardConfig.native(
                 batchSize: Int(config.batchSize),
                 evaluationKeyConfig: evaluationKeyConfig),

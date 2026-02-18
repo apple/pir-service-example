@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import ApplicationProtobuf
 import Hummingbird
-import PrivateInformationRetrievalProtobuf
 import Util
 
 extension Platform {
@@ -40,7 +40,7 @@ extension Platform {
     }
 }
 
-public extension Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Config {
+public extension Apple_SwiftHomomorphicEncryption_Api_V1_Config {
     /// Makes the configuration compatible with the given platform.
     /// - Parameter platform: Device platform.
     mutating func makeCompatible(with platform: Platform) throws {
