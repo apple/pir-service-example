@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import ApplicationProtobuf
 import Foundation
 import HomomorphicEncryptionProtobuf
 import Hummingbird
 import HummingbirdCompression
-import PrivateInformationRetrievalProtobuf
 import Util
 
 struct PIRServiceController {
@@ -57,7 +57,7 @@ struct PIRServiceController {
     func config(_ request: Request, context: AppContext) async throws -> some ResponseGenerator {
         context.logger.info("Tier = \(context.userTier)")
         let configRequest = try await request.decodeProto(
-            as: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigRequest.self,
+            as: Apple_SwiftHomomorphicEncryption_Api_V1_ConfigRequest.self,
             context: context)
         let requestedUsecases = if configRequest.usecases.isEmpty {
             await usecases.getAll()
@@ -86,7 +86,7 @@ struct PIRServiceController {
         let existingConfigIds = configRequest.existingConfigIds.isEmpty ? Array(
             repeating: Data(),
             count: requestedUsecases.count) : configRequest.existingConfigIds
-        var configs = [String: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Config]()
+        var configs = [String: Apple_SwiftHomomorphicEncryption_Api_V1_Config]()
         for (usecaseName, configId) in zip(requestedUsecases.keys, existingConfigIds) {
             if let usecase = requestedUsecases[usecaseName] {
                 var config = try usecase.config(existingConfigId: Array(configId))
@@ -113,7 +113,7 @@ struct PIRServiceController {
 
         let keyStatuses: [Apple_SwiftHomomorphicEncryption_Api_Shared_V1_KeyStatus] =
             try await .init(keyStatusesSequence)
-        return Protobuf(Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigResponse.with { configResponse in
+        return Protobuf(Apple_SwiftHomomorphicEncryption_Api_V1_ConfigResponse.with { configResponse in
             configResponse.configs = configs
             configResponse.keyInfo = keyStatuses
         })
@@ -123,7 +123,7 @@ struct PIRServiceController {
     func queries(_ request: Request, context: AppContext) async throws -> some ResponseGenerator {
         let startTime = Date.now
         let requests = try await request.decodeProto(
-            as: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Requests.self,
+            as: Apple_SwiftHomomorphicEncryption_Api_V1_Requests.self,
             context: context)
 
         defer {
@@ -167,12 +167,14 @@ struct PIRServiceController {
                     throw HTTPError(.badRequest, message: "Unknown usecase: \(request.usecase)")
                 }
                 return try await usecase.process(request: request, evaluationKey: evaluationKey)
+            case .some(.pnnsRequest):
+                throw HTTPError(.badRequest, message: "Unknown request type.")
             case .none:
                 throw HTTPError(.badRequest, message: "Unknown request type.")
             }
         }
-        let responses: [Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Response] = try await .init(responsesSequence)
-        return Protobuf(Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Responses.with { apiResponses in
+        let responses: [Apple_SwiftHomomorphicEncryption_Api_V1_Response] = try await .init(responsesSequence)
+        return Protobuf(Apple_SwiftHomomorphicEncryption_Api_V1_Responses.with { apiResponses in
             apiResponses.responses = responses
         })
     }
