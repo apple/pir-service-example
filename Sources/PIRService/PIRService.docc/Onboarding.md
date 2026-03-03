@@ -34,8 +34,8 @@ In the output check if the SSL session was established or not.
 You will need to provide the URLs you would put into your feature configuration. For example, for Live Caller ID Lookup, you would provide the URLs configured in
 [LiveCallerIDLookupExtensionContext](https://developer.apple.com/documentation/identitylookup/livecalleridlookupextensioncontext). For NEURLFilter, you will provide the URLs specified in [NEURLFilter API documentation](https://developer.apple.com/documentation/networkextension/neurlfiltermanager).
 
-> Important: In addition, we strongly advise you to use subdomains instead of paths. Support for custom paths for the
-> service URL and token issuer URL will be deprecated in a future iOS version.
+> Warning: We require you to use subdomains instead of paths. Support for custom paths for the
+> service URL and token issuer URL was removed in iOS and macOS 26.4.
 
 Good example:
 ```
@@ -48,6 +48,10 @@ Bad example:
 ```
 http://example.net:8080/lookup - No HTTPS, non standard port, path instead of subdomain
 ```
+
+> Note: When installing directly from Xcode during development, the URL can contain paths, custom ports and HTTP instead
+> of HTTPS. This eases local testing and development. However, the system applies these URL checks when your app is
+> installed from the App Store.
 
 #### HTTP Bearer Token / UserToken
 The `userToken` field is of type `String` and the system sets the "Authorization" header like this:
