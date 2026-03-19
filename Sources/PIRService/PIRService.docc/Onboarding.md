@@ -47,6 +47,7 @@ https://service.example.net
 Bad example:
 ```
 http://example.net:8080/lookup - No HTTPS, non standard port, path instead of subdomain
+http://example.net/ - trailing '/' needs to be removed
 ```
 
 > Note: When installing directly from Xcode during development, the URL can contain paths, custom ports and HTTP instead
