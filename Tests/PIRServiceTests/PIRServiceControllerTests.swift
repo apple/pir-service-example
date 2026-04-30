@@ -233,6 +233,25 @@ struct PIRServiceControllerTests {
     }
 
     @Test
+    func getConfigFetch() async throws {
+        let usecaseStore = UsecaseStore()
+        let exampleUsecase = ExampleUsecase.hundred
+        try await usecaseStore.set(name: "test", usecase: exampleUsecase)
+        let app = try await buildApplication(usecaseStore: usecaseStore)
+
+        try await app.test(.live) { client in
+            try await client.execute(uri: "/config", method: .get) { response in
+                #expect(response.status == .ok)
+                let configResponse = try response
+                    .message(as: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigResponse.self)
+                #expect(try configResponse.configs["test"] == exampleUsecase.config())
+                #expect(try configResponse.keyInfo[0].keyConfig == exampleUsecase.evaluationKeyConfig())
+                #expect(configResponse.keyInfo[0].timestamp == 0)
+            }
+        }
+    }
+
+    @Test
     func configFetchWithUnknownUsecase() async throws {
         let usecaseStore = UsecaseStore()
         let exampleUsecase = ExampleUsecase.hundred

@@ -11,15 +11,29 @@ Protobuf](https://github.com/apple/swift-homomorphic-encryption-protobuf).
 
 The system expects the following endpoints from the service:
 
-1. The system should be able to fetch configuration & get the status of evaluation keys stored on the server.
-2. The system should be able to upload a new evaluation key.
-3. The system should be able to do Private Information Retrieval (PIR) queries.
-4. The system should be able to submit reports of blocked URLs to the service (optional, NEURLFilter use case only).
+1. The system should be able to fetch configuration without authentication.
+2. The system should be able to fetch configuration & get the status of evaluation keys stored on the server.
+3. The system should be able to upload a new evaluation key.
+4. The system should be able to do Private Information Retrieval (PIR) queries.
+5. The system should be able to submit reports of blocked URLs to the service (optional, NEURLFilter use case only).
 
 When the service also issues the Privacy Pass tokens used to authenticate these requests, it provides the additional
 [token issuer](#Token-issuer) endpoints.
 
 ## Service endpoints
+
+### Get configuration (unauthenticated)
+The system may call this endpoint to fetch the current use case configurations without providing a Privacy Pass token or
+user identifier. This is useful for bootstrapping before authentication material has been obtained.
+
+Request        | Value              | Description
+-------------- | ------------------ | -----------
+Method         | GET                | HTTP method.
+Path           | `/config`          | HTTP path.
+Response       | `ConfigResponse`   | Serialized Protobuf message containing all available use case configurations.
+Response field | `configs`          | Map from use case names to the corresponding configuration.
+
+The `key_info` field in the response will always be empty because no user identifier is provided.
 
 ### Get configuration and status
 The system calls the configuration endpoint periodically to get information about the use case configuration and

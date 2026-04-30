@@ -60,6 +60,7 @@ func buildApplication(
     router.middlewares.add(LogErrorsMiddleware())
 
     let pirServiceController = PIRServiceController(usecases: usecaseStore, evaluationKeyStore: evaluationKeyStore)
+    pirServiceController.addUnauthRoutes(to: router.group())
     let pirGroup = router.group()
     // The report endpoint lives in its own group so it inherits PrivacyPass authentication (when configured) but
     // not the `User-Identifier`/`User-Agent` requirements that `PIRServiceController.addRoutes` adds to `pirGroup`.

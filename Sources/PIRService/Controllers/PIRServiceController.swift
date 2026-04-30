@@ -1,4 +1,4 @@
-// Copyright 2024-2025 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2026 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,6 +35,12 @@ struct PIRServiceController {
             // only `config` uses response compression, since the key and queries are not compressible.
             .add(middleware: ResponseCompressionMiddleware())
             .post("/config", use: config)
+    }
+
+    func addUnauthRoutes(to group: RouterGroup<AppContext>) {
+        group
+            .add(middleware: ResponseCompressionMiddleware())
+            .get("/config", use: getConfig)
     }
 
     @Sendable
@@ -116,6 +122,24 @@ struct PIRServiceController {
         return Protobuf(Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigResponse.with { configResponse in
             configResponse.configs = configs
             configResponse.keyInfo = keyStatuses
+        })
+    }
+
+    @Sendable
+    func getConfig(_: Request, context _: AppContext) async throws -> some ResponseGenerator {
+        let allUsecases = await usecases.getAll()
+        let configs = try Dictionary(uniqueKeysWithValues: allUsecases.map { name, usecase in
+            try (name, usecase.config(existingConfigId: []))
+        })
+        let evaluationKeyStatuses = try allUsecases.values.map { usecase in
+            try Apple_SwiftHomomorphicEncryption_Api_Shared_V1_KeyStatus.with { eks in
+                eks.timestamp = 0
+                eks.keyConfig = try usecase.evaluationKeyConfig()
+            }
+        }
+        return Protobuf(Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigResponse.with { configResponse in
+            configResponse.configs = configs
+            configResponse.keyInfo = evaluationKeyStatuses
         })
     }
 
