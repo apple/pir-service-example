@@ -92,7 +92,6 @@ request.setValue("Bearer \(userToken)", forHTTPHeaderField: "Authorization")
 The onboarding form should be filled out when you have a working service, but before you start distributing your
 application.
 
-> Important:
-> [Link to the onboarding form for Live Caller ID Lookup.](https://developer.apple.com/contact/request/live-caller-id-lookup/)
->
-> [Link to the onboarding form for NEURLFilter.](https://developer.apple.com/contact/request/network-extension-url-filter)
+> Important: Register your Live Caller ID Lookup or Network Extension URL Filter configuration on the
+> [Identity & Trust](https://icloud.developer.apple.com/dashboard/identity) page in the
+> [CloudKit Console](https://icloud.developer.apple.com/).
