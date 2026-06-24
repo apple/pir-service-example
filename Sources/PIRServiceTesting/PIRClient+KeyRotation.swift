@@ -1,4 +1,4 @@
-// Copyright 2024 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2025 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import ApplicationProtobuf
 import Foundation
 import HomomorphicEncryption
 import PrivateInformationRetrieval
-import PrivateInformationRetrievalProtobuf
 import SwiftProtobuf
 
 extension PIRClient {
     mutating func fetchKeyStatus(for usecase: String) async throws
         -> Apple_SwiftHomomorphicEncryption_Api_Shared_V1_KeyStatus
     {
-        let configRequest = Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigRequest.with { configRequest in
+        let configRequest = Apple_SwiftHomomorphicEncryption_Api_V1_ConfigRequest.with { configRequest in
             configRequest.usecases = [usecase]
             configRequest.existingConfigIds = [configCache[usecase]?.configurationId ?? Data()]
         }
 
-        let configResponse: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigResponse = try await post(
+        let configResponse: Apple_SwiftHomomorphicEncryption_Api_V1_ConfigResponse = try await post(
             path: "/config",
             body: configRequest)
         guard let config = configResponse.configs[usecase] else {
