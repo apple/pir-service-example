@@ -30,16 +30,19 @@ struct ServerCommand: AsyncParsableCommand {
     func run() async throws {
         let usecaseStore = UsecaseStore()
         let privacyPassState = try PrivacyPassState(userAuthenticator: UserAuthenticator())
+        let reportStore = ReportStore()
 
         let app = try await buildApplication(
             configuration: .init(address: .hostname(hostname, port: port)),
             usecaseStore: usecaseStore,
-            privacyPassState: privacyPassState)
+            privacyPassState: privacyPassState,
+            reportStore: reportStore)
 
         let reloadService = ReloadService(
             configFile: URL(fileURLWithPath: configFile),
             usecaseStore: usecaseStore,
             privacyPassState: privacyPassState,
+            reportStore: reportStore,
             logger: app.logger)
 
         try await reloadService.reloadConfiguration()

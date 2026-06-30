@@ -52,7 +52,8 @@ func buildApplication(
     configuration: ApplicationConfiguration = .init(),
     usecaseStore: UsecaseStore = UsecaseStore(),
     privacyPassState: PrivacyPassState<UserAuthenticator>? = nil,
-    evaluationKeyStore: some PersistDriver = MemoryPersistDriver()) async throws -> some ApplicationProtocol
+    evaluationKeyStore: some PersistDriver = MemoryPersistDriver(),
+    reportStore: ReportStore = ReportStore()) async throws -> some ApplicationProtocol
 {
     let router = Router(context: AppContext.self)
     router.middlewares.add(LogRequestsMiddleware(.info, includeHeaders: .none))
@@ -60,15 +61,21 @@ func buildApplication(
 
     let pirServiceController = PIRServiceController(usecases: usecaseStore, evaluationKeyStore: evaluationKeyStore)
     let pirGroup = router.group()
+    // The report endpoint lives in its own group so it inherits PrivacyPass authentication (when configured) but
+    // not the `User-Identifier`/`User-Agent` requirements that `PIRServiceController.addRoutes` adds to `pirGroup`.
+    let reportGroup = router.group()
+    let reportController = ReportController(reportStore: reportStore)
 
     if let privacyPassState {
         let controller = PrivacyPassController(state: privacyPassState)
         controller.addRoutes(to: router.group())
         let userTierAuthenticator = AuthenticateUserTierMiddleware(AppContext.self, state: privacyPassState)
         pirGroup.add(middleware: userTierAuthenticator)
+        reportGroup.add(middleware: userTierAuthenticator)
     }
 
     pirServiceController.addRoutes(to: pirGroup)
+    reportController.addRoutes(to: reportGroup)
 
     var application = Application(router: router, configuration: configuration)
     application.addServices(evaluationKeyStore)
