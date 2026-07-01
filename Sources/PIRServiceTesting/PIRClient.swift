@@ -1,4 +1,4 @@
-// Copyright 2024-2025 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2026 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -253,14 +253,9 @@ public struct PIRClient<PIRClient: IndexPirClient> {
         ]
         if userToken != nil {
             if tokens.isEmpty {
-                // Note: actual device behaviour is more complex than just fetching 4 tokens.
-                // Device implementation is subject to change, but as of iOS 18.0 the implementation is like this:
-                // If there are no tokens, fetch 1 token plus 3 extra tokens.
-                // If after using a token, there are fewer than 5 tokens left, schedule a background task to fetch
-                // enough tokens to have 10 tokens cached. The backgound task should run in `5 + random(in: 0…60)`
-                // seconds.
-                // Tokens cached for more than 24 hours are considered expired and removed from the cache.
-                try await fetchTokens(count: 4)
+                // Note: actual device behaviour is different. See the "How the system fetches tokens" section in
+                // Sources/PIRService/PIRService.docc/Authentication.md for details.
+                try await fetchTokens(count: 10)
             }
 
             let token = tokens.removeFirst()
