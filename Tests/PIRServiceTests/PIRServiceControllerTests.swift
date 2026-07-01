@@ -1,4 +1,4 @@
-// Copyright 2024-2025 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2026 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,9 +23,8 @@ import PrivateInformationRetrievalProtobuf
 import Testing
 import Util
 
-@Suite
 struct PIRServiceControllerTests {
-    // Error message returned by Hummingbird
+    /// Error message returned by Hummingbird
     struct ErrorMessage: Codable {
         // swiftlint:disable:next nesting
         struct Details: Codable {

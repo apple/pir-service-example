@@ -1,4 +1,4 @@
-// Copyright 2024-2025 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2026 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -63,9 +63,9 @@ extension PrivacyPassError: CustomDebugStringConvertible {
 public extension PrivacyPassError {
     /// A high level indication of the kind of error being thrown.
     struct Code: Hashable, Sendable, CustomStringConvertible {
-        // Adding cases to an enum is source-breaking (since adopters might switch on an enum value without a default).
-        // So we keep the enum private.
-        private enum InternalCode: Hashable, Sendable, CustomStringConvertible { // swiftlint:disable:this nesting
+        /// Adding cases to an enum is source-breaking (since adopters might switch on an enum value without a default).
+        /// So we keep the enum private.
+        private enum InternalCode: Hashable, CustomStringConvertible { // swiftlint:disable:this nesting
             case invalidIssuer
             case invalidKeySize
             case invalidOriginInfo

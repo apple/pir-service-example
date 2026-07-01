@@ -1,4 +1,4 @@
-// Copyright 2024 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2026 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@ actor PrivacyPassState<UserAuthenticator: UserTokenAuthenticator> {
     }
 
     let userAuthenticator: UserAuthenticator
-    // map from tier to issuer
+    /// map from tier to issuer
     var issuers: [UserTier: PrivacyPass.Issuer]
-    // map from truncate key id to verifier & tier
+    /// map from truncate key id to verifier & tier
     var verifiers: [UInt8: TieredVerifier]
 
     init(userAuthenticator: UserAuthenticator) throws {

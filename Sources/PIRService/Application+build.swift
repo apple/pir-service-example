@@ -1,4 +1,4 @@
-// Copyright 2024-2025 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2026 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ struct AppContext: IdentifiedRequestContext, AuthenticatedRequestContext, Platfo
     var userTier: UserTier
     var platform: Platform?
 
-    // override upload size to 10MiB, the default 2MiB limit is too small for some evaluation keys.
+    /// override upload size to 10MiB, the default 2MiB limit is too small for some evaluation keys.
     var maxUploadSize: Int {
         10 * 1024 * 1024
     }

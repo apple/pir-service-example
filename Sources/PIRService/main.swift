@@ -1,4 +1,4 @@
-// Copyright 2024-2025 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2026 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ import Foundation
 import Hummingbird
 import ServiceLifecycle
 
-// This executable is used in tests, which breaks `swift test -c release` when used with `@main`.
-// So we avoid using `@main` here.
+/// This executable is used in tests, which breaks `swift test -c release` when used with `@main`.
+/// So we avoid using `@main` here.
 struct ServerCommand: AsyncParsableCommand {
     static let configuration: CommandConfiguration = .init(
         commandName: "PIRService")
@@ -49,7 +49,7 @@ struct ServerCommand: AsyncParsableCommand {
     }
 }
 
-// workaround to call the async main, but without using a top-level `await` to not break `swift test -c release`.
+/// workaround to call the async main, but without using a top-level `await` to not break `swift test -c release`.
 let group = DispatchGroup()
 group.enter()
 let task = Task.detached(priority: .userInitiated) {
