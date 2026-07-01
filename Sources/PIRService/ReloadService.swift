@@ -1,4 +1,4 @@
-// Copyright 2024-2025 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2026 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ struct ServerConfiguration: Codable {
     }
 
     let issuerRequestUri: String?
+    let reportDirectory: String?
     let users: [UserGroup]
     let usecases: [Usecase]
 }
@@ -67,17 +68,20 @@ actor ReloadService: Service {
     let configFile: URL
     let usecaseStore: UsecaseStore
     let privacyPassState: PrivacyPassState<UserAuthenticator>
+    let reportStore: ReportStore
     let logger: Logger
 
     init(
         configFile: URL,
         usecaseStore: UsecaseStore,
         privacyPassState: PrivacyPassState<UserAuthenticator>,
+        reportStore: ReportStore,
         logger: Logger)
     {
         self.configFile = configFile
         self.usecaseStore = usecaseStore
         self.privacyPassState = privacyPassState
+        self.reportStore = reportStore
         self.logger = logger
     }
 
@@ -119,6 +123,7 @@ actor ReloadService: Service {
             }
         }
         await privacyPassState.userAuthenticator.update(allowList: allowedUsers)
+        await reportStore.set(reportDirectory: config.reportDirectory)
 
         for usecase in config.usecases {
             // default to two versions

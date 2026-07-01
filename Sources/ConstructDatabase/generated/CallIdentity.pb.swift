@@ -8,7 +8,7 @@
 // For information on using the generated types, please see the documentation:
 //   https://github.com/apple/swift-protobuf/
 
-// Copyright 2024-2025 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2026 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 import SwiftProtobuf
 
 // If the compiler emits an error on this type, it is because this file
@@ -30,13 +34,13 @@ import SwiftProtobuf
 // incompatible with the version of SwiftProtobuf to which you are linking.
 // Please ensure that you are building against the same version of the API
 // that was used to generate this file.
-fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
+fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
   struct _2: SwiftProtobuf.ProtobufAPIVersion_2 {}
   typealias Version = _2
 }
 
 /// Image format.
-enum ImageFormat: SwiftProtobuf.Enum, Swift.CaseIterable {
+nonisolated enum ImageFormat: SwiftProtobuf.Enum, Swift.CaseIterable {
   typealias RawValue = Int
 
   /// Unspecified format.
@@ -77,7 +81,7 @@ enum ImageFormat: SwiftProtobuf.Enum, Swift.CaseIterable {
 /// Identity Category.
 ///
 /// The system might show identity information differently based on the category.
-enum IdentityCategory: SwiftProtobuf.Enum, Swift.CaseIterable {
+nonisolated enum IdentityCategory: SwiftProtobuf.Enum, Swift.CaseIterable {
   typealias RawValue = Int
 
   /// Unspecified category.
@@ -122,7 +126,7 @@ enum IdentityCategory: SwiftProtobuf.Enum, Swift.CaseIterable {
 }
 
 /// Icon
-struct Icon: Sendable {
+nonisolated struct Icon: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -139,7 +143,7 @@ struct Icon: Sendable {
 }
 
 /// Caller Identity
-struct CallIdentity: Sendable {
+nonisolated struct CallIdentity: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -149,11 +153,11 @@ struct CallIdentity: Sendable {
 
   /// Icon to be displayed with the identity.
   var icon: Icon {
-    get {return _icon ?? Icon()}
+    get {_icon ?? Icon()}
     set {_icon = newValue}
   }
   /// Returns true if `icon` has been explicitly set.
-  var hasIcon: Bool {return self._icon != nil}
+  var hasIcon: Bool {self._icon != nil}
   /// Clears the value of `icon`. Subsequent reads from it will return its default value.
   mutating func clearIcon() {self._icon = nil}
 
@@ -174,15 +178,15 @@ struct CallIdentity: Sendable {
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
-extension ImageFormat: SwiftProtobuf._ProtoNameProviding {
+nonisolated extension ImageFormat: SwiftProtobuf._ProtoNameProviding {
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0IMAGE_FORMAT_UNSPECIFIED\0\u{1}IMAGE_FORMAT_HEIC\0")
 }
 
-extension IdentityCategory: SwiftProtobuf._ProtoNameProviding {
+nonisolated extension IdentityCategory: SwiftProtobuf._ProtoNameProviding {
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0IDENTITY_CATEGORY_UNSPECIFIED\0\u{1}IDENTITY_CATEGORY_PERSON\0\u{1}IDENTITY_CATEGORY_BUSINESS\0")
 }
 
-extension Icon: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Icon: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = "Icon"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}format\0\u{1}image\0")
 
@@ -217,7 +221,7 @@ extension Icon: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase,
   }
 }
 
-extension CallIdentity: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension CallIdentity: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = "CallIdentity"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}icon\0\u{3}cache_expiry_minutes\0\u{1}category\0")
 

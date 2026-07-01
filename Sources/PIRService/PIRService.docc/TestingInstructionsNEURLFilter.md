@@ -189,6 +189,65 @@ By default `PIRService` will start listening on the loopback interface, but you 
 make it listen on all network interfaces. The default port is `8080`, but it can be changed by using the `--port`
 option.
 
+### Testing the report endpoint
+
+> Seealso: <doc:HTTPEndpoints>
+
+The NEURLFilter use case can submit reports of blocked URLs to the service via the optional `POST /report` endpoint.
+This endpoint applies only to NEURLFilter. Reporting is only allowed for supervised devices, where the admin/school has
+total control of their owned devices.
+
+To have the service persist received reports to disk, add a `reportDirectory` field to your `service-config.json`
+pointing at an existing directory:
+
+```json
+{
+  "reportDirectory": "/Users/example/testing/reports",
+  "users": [
+    {
+      "tier": "tier1",
+      "tokens": ["AAAA"]
+    },
+    {
+      "tier": "tier2",
+      "tokens": ["BBBB", "CCCC"]
+    }
+  ],
+  "usecases": [
+    {
+      "fileStem": "url",
+      "shardCount": 1,
+      "name": "com.example.apple-samplecode.SimpleURLFilter.url.filtering"
+    }
+  ]
+}
+```
+
+If `reportDirectory` is omitted or set to `null`, reports are still accepted but immediately discarded (and logged);
+the server returns a successful response either way.
+
+The endpoint accepts the list of blocked URLs either as a serialized `URLFilterReport` Protobuf message or as a JSON
+array of strings. The simplest way to test manually is with a JSON body:
+
+```sh
+curl -v http://localhost:8080/report \
+  -H "Content-Type: application/json" \
+  -H "User-Agent: testing/1.0" \
+  -d '["example.com", "example2.com"]'
+```
+
+When `reportDirectory` is configured, each report is written as a separate UUID-named `.txtpb` file (a text-format
+`URLFilterReportWithMetadata` proto that also records the `User-Agent` and a server-side receive timestamp). Inspect the
+directory to confirm the report was stored:
+
+```sh
+ls ~/testing/reports
+cat ~/testing/reports/*.txtpb
+```
+
+> Note: When Privacy Pass authentication is enabled, the `/report` request must include a valid Privacy Pass token in
+> the `Authorization` header (the same token format used for PIR queries).
+
 ### Writing the application
 
 Use the `NEURLFilterManager` API in your filter app to create the URL filter configuration and manage your URL filter.  Create the URL filter configuration to let the system know how to talk to your PIR server and Privacy Pass issuer.  Use the `setConfiguration()` function to create the URL configuration with the required attributes

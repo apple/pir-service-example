@@ -15,6 +15,10 @@ The system expects three endpoints from the service:
 2. The system should be able to upload new evaluation key.
 3. The system should be able to do Private Information Retrieval (PIR) queries.
 
+The service also optionally supports a report endpoint, which applies only to the NEURLFilter use case:
+
+5. For the NEURLFilter use case, the system can submit reports of blocked URLs to the service.
+
 ### Get configuration and status
 The system calls the configuration endpoint periodically to get information about the use case configuration and
 evaluation key status.
@@ -61,3 +65,33 @@ Header         | `User-Agent`       | Identifier for the user's OS type and vers
 Header         | `User-Identifier`  | Pseudorandom identifier tied to a user.
 Request Body   | `Requests`         | Serialized Protobuf message.
 Response       | `Responses`        | Serialized Protobuf message.
+
+### Report blocked URLs for NEURLFilter
+This optional endpoint is used only by the NEURLFilter. It accepts reports of blocked URLs from the system. The
+reporting feature is only allowed for supervised devices, where the admin/school has total control of their owned
+devices. When Privacy Pass authentication is enabled, the request must include a valid Privacy Pass token in the
+`Authorization` header (the same token used for PIR queries). Reports are written to disk when `reportDirectory` is set
+in the server configuration; otherwise the report is dropped (and logged) and the server still returns a successful
+response.
+
+Request        | Value               | Description
+-------------- | ------------------- | -----------
+Method         | POST                | HTTP method.
+Path           | `/report`           | HTTP path.
+Header         | `Authorization`     | Privacy Pass token (required when Privacy Pass authentication is enabled). Format: `PrivateToken token=<base64url-encoded token bytes>`.
+Header         | `Content-Type`      | Set to `application/json` to send a JSON array of URL strings. Omit (or use `application/octet-stream`) to send a serialized `URLFilterReport` Protobuf message.
+Header         | `User-Agent`        | Identifier for the user's OS type and version. Captured and stored in the report metadata when present.
+Request Body   | `URLFilterReport`   | Serialized Protobuf message or a JSON array containing the list of URLs that were blocked.
+Response       | —                   | Empty body. Returns `200 OK` on success, `400 Bad Request` if the body is malformed.
+
+The `URLFilterReport` Protobuf message is defined in this repository at
+`Sources/PIRService/protobuf/URLFilterReport.proto`.
+
+Each reported URL is the matched entry from the filter dataset, not the full URL the user visited. For example, if the
+dataset contains `https://example.com/` and the user visits `https://example.com/xxx/yyy/zzz`, the entry matches and the
+report contains `https://example.com/`.
+
+To enable writing reports to disk, set the `reportDirectory` field in the server configuration JSON to the path of an
+existing directory. Each received report is written as a separate `.txtpb` file (a text-format proto
+`URLFilterReportWithMetadata`) with a UUID filename. If `reportDirectory` is omitted or set to `null`, reports are
+accepted but immediately discarded.
