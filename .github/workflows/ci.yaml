@@ -31,7 +31,7 @@ jobs:
     with:
       # https://github.com/apple/swift-distributed-tracing/issues/165
       enable_windows_checks: false
-      linux_exclude_swift_versions: "[{\"swift_version\": \"5.9\"}, {\"swift_version\": \"5.10\"}]"
+      linux_exclude_swift_versions: "[{\"swift_version\": \"5.9\"}, {\"swift_version\": \"5.10\"}, {\"swift_version\": \"6.0\"}]"
       linux_build_command: "swift test --configuration release"
   pre-commit:
     timeout-minutes: 1
