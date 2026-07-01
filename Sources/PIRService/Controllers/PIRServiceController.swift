@@ -86,6 +86,20 @@ struct PIRServiceController {
         let existingConfigIds = configRequest.existingConfigIds.isEmpty ? Array(
             repeating: Data(),
             count: requestedUsecases.count) : configRequest.existingConfigIds
+        return try await Protobuf(configResponse(
+            usecases: requestedUsecases,
+            existingConfigIds: existingConfigIds,
+            context: context))
+    }
+
+    /// Builds a `ConfigResponse` for the given usecases, keyed by usecase name.
+    ///
+    /// `existingConfigIds` must have the same count as `usecases.count`, in the same iteration order.
+    private func configResponse(
+        usecases requestedUsecases: [String: Usecase],
+        existingConfigIds: [Data],
+        context: AppContext) async throws -> Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigResponse
+    {
         var configs = [String: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Config]()
         for (usecaseName, configId) in zip(requestedUsecases.keys, existingConfigIds) {
             if let usecase = requestedUsecases[usecaseName] {
@@ -113,10 +127,10 @@ struct PIRServiceController {
 
         let keyStatuses: [Apple_SwiftHomomorphicEncryption_Api_Shared_V1_KeyStatus] =
             try await .init(keyStatusesSequence)
-        return Protobuf(Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigResponse.with { configResponse in
+        return Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigResponse.with { configResponse in
             configResponse.configs = configs
             configResponse.keyInfo = keyStatuses
-        })
+        }
     }
 
     @Sendable
@@ -135,7 +149,7 @@ struct PIRServiceController {
             switch request.request {
             case let .oprfRequest(oprfRequest):
                 guard let usecase = await usecases.get(name: request.usecase) else {
-                    throw HTTPError(.badRequest, message: "Unknown usecase: \(request.usecase)")
+                    throw PIRServiceError.invalidRequest(message: "Unknown usecase: \(request.usecase)")
                 }
                 return try await usecase.processOprf(request: oprfRequest)
             case .pirRequest:
@@ -152,23 +166,25 @@ struct PIRServiceController {
                         as: Protobuf<Apple_SwiftHomomorphicEncryption_Api_Shared_V1_EvaluationKey>.self)?.message
                 }
                 guard let evaluationKey else {
-                    throw HTTPError(.badRequest, message: "Evaluation key not found")
+                    throw PIRServiceError.evaluationKeyNotFound
                 }
                 let configId = Array(request.pirRequest.configurationHash)
                 guard let usecase = await usecases.get(
                     name: request.usecase,
                     configId: configId)
                 else {
-                    if await (usecases.get(name: request.usecase)) != nil {
-                        throw HTTPError(
-                            .gone,
-                            message: "Configuration id: \(configId) is not available for usecase \(request.usecase).")
+                    guard let latestUsecase = await usecases.get(name: request.usecase) else {
+                        throw PIRServiceError.invalidRequest(message: "Unknown usecase: \(request.usecase)")
                     }
-                    throw HTTPError(.badRequest, message: "Unknown usecase: \(request.usecase)")
+                    let staleConfigResponse = try await configResponse(
+                        usecases: [request.usecase: latestUsecase],
+                        existingConfigIds: [Data()],
+                        context: context)
+                    throw PIRServiceError.configVersionNotFound(configResponse: staleConfigResponse)
                 }
                 return try await usecase.process(request: request, evaluationKey: evaluationKey)
             case .none:
-                throw HTTPError(.badRequest, message: "Unknown request type.")
+                throw PIRServiceError.invalidRequest(message: "Unknown request type.")
             }
         }
         let responses: [Apple_SwiftHomomorphicEncryption_Api_Pir_V1_Response] = try await .init(responsesSequence)
