@@ -1,4 +1,4 @@
-// Copyright 2024 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2026 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -49,6 +49,8 @@ struct ExtractUserIdentifierMiddleware<Context: IdentifiedRequestContext>: Route
 }
 
 extension HTTPField.Name {
-    // swiftlint:disable:next force_unwrapping
-    static var userIdentifier: Self { Self("User-Identifier")! }
+    static var userIdentifier: Self {
+        // swiftlint:disable:next force_unwrapping
+        Self("User-Identifier")!
+    }
 }
