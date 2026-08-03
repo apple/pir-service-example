@@ -14,8 +14,7 @@ The system expects the following endpoints from the service:
 1. The system should be able to fetch configuration & get the status of evaluation keys stored on the server.
 2. The system should be able to upload a new evaluation key.
 3. The system should be able to do Private Information Retrieval (PIR) queries.
-4. The system should be able to fetch the token key for a user token.
-5. The system should be able to submit reports of blocked URLs to the service (optional, NEURLFilter use case only).
+4. The system should be able to submit reports of blocked URLs to the service (optional, NEURLFilter use case only).
 
 When the service also issues the Privacy Pass tokens used to authenticate these requests, it provides the additional
 [token issuer](#Token-issuer) endpoints.
@@ -69,22 +68,6 @@ Header         | `User-Identifier`  | Pseudorandom identifier tied to a user.
 Request Body   | `Requests`         | Serialized Protobuf message.
 Response       | `Responses`        | Serialized Protobuf message.
 
-### Fetch the token key for a user token
-Before the system can request Privacy Pass tokens, it needs to know which public key is associated with the user's
-tier. The system sends the user's HTTP Bearer token to this endpoint, and the service responds with the public key for
-the matching user tier. The system verifies that the returned public key is also present in the token issuer directory
-and that it is valid for the current time.
-
-Request        | Value                        | Description
--------------- | ---------------------------- | -----------
-Method         | GET                          | HTTP method.
-Path           | `/token-key-for-user-token`  | HTTP path.
-Header         | `Authorization`              | The value contains the user's HTTP Bearer token (`Bearer <userToken>`).
-Response       | Public key                   | The public key associated with the user tier, as a DER-encoded SubjectPublicKeyInfo (SPKI) object.
-
-The service uses the Bearer token to look up the user tier, then returns the public key of the issuer for that tier. If
-the token is missing or unauthorized, the service responds with `401 Unauthorized`.
-
 ### Report blocked URLs for NEURLFilter
 This optional endpoint is used only by the NEURLFilter. It accepts reports of blocked URLs from the system. The
 reporting feature is only allowed for supervised devices, where the admin/school has total control of their owned
@@ -133,6 +116,22 @@ Request        | Value                                          | Description
 Method         | GET                                            | HTTP method.
 Path           | `/.well-known/private-token-issuer-directory`  | HTTP path.
 Response       | Token issuer directory                         | JSON object with an `issuer-request-uri` and a `token-keys` list. Each entry gives a `token-type` and the DER-encoded SubjectPublicKeyInfo (SPKI) public key as base64url.
+
+### Fetch the token key for a user token
+Before the system can request Privacy Pass tokens, it needs to know which public key is associated with the user's
+tier. The system sends the user's HTTP Bearer token to this endpoint, and the service responds with the public key for
+the matching user tier. The system verifies that the returned public key is also present in the token issuer directory
+and that it is valid for the current time.
+
+Request        | Value                        | Description
+-------------- | ---------------------------- | -----------
+Method         | GET                          | HTTP method.
+Path           | `/token-key-for-user-token`  | HTTP path.
+Header         | `Authorization`              | The value contains the user's HTTP Bearer token (`Bearer <userToken>`).
+Response       | Public key                   | The public key associated with the user tier, as a DER-encoded SubjectPublicKeyInfo (SPKI) object.
+
+The service uses the Bearer token to look up the user tier, then returns the public key of the issuer for that tier. If
+the token is missing or unauthorized, the service responds with `401 Unauthorized`.
 
 ### Issue a token
 The system sends a Privacy Pass token request to this endpoint and receives a token response, which it finalizes into a
