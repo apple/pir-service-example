@@ -308,3 +308,15 @@ the device find your Mac. Let's assume that your Mac's hostname is `Tims-MacBook
 
 Then we should use the following value for the URLs: `http://Tims-Macbook-Pro.local:8080`. Thanks to the mDNS protocol
 your device should be able to resolve your hostname to the actual IP address of your Mac and make the connection.
+
+#### Troubleshooting
+
+If you change the `LiveCallerIDLookupExtensionContext` (for example, pointing `serviceURL` at your local machine) after
+the extension has already been enabled, the system may keep using the previous context. This can surface as an error
+in Console.app similar to:
+```
+requestStatusForClientConfig:options:dispatchQueue:completionHandler: XPC request complete, status(0) error:Error Domain=CipherML.AuthenticationError Code=7 "failed to fetch token key" UserInfo={NSLocalizedDescription=failed to fetch token key}
+```
+Call `LiveCallerIDLookupManager.shared.refreshExtensionContext(forExtensionWithIdentifier:)` to make the system pick up
+the updated context. `refreshPIRParameters(forExtensionWithIdentifier:)` forces a dataset refresh, but does not
+re-fetch the extension context itself.
