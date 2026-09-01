@@ -27,4 +27,6 @@ NEURLFilter applications.
 Reports are written to a configurable directory on disk, or dropped (and logged) if no directory is configured.
 See <doc:HTTPEndpoints> for details.
 
+See <doc:OSChanges> for OS changes that affect PIR service providers.
+
 ## Topics
