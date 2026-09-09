@@ -56,9 +56,9 @@ The token request includes the User Token in the `Authorization` HTTP header.
 
 ### How the system fetches tokens
 
-> Note: The behavior described in this section applies to iOS 27.0 and later. Versions before iOS 27.0 fetched tokens
-> differently, so the batch sizes, thresholds, and schedule described here should not be relied upon for earlier
-> releases.
+> Note: The behavior described in this section applies to iOS and macOS 27.0 and later. Versions before iOS and macOS
+> 27.0 fetched tokens differently, so the batch sizes, thresholds, and schedule described here should not be relied
+> upon for earlier releases.
 
 The system keeps a local cache of unused Privacy Pass tokens and refills it in the background, so that a PIR request
 rarely has to wait for token issuance. Understanding this behavior helps you provision your issuer for the request

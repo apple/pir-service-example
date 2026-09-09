@@ -258,19 +258,6 @@ By default `PIRService` will start listening on the loopback interface, but you 
 make it listen on all network interfaces. The default port is `8080`, but it can be changed by using the `--port`
 option.
 
-#### Features
-After introduction in iOS 18.0, `Live Caller ID Lookup` introduced further features.
-
-* `Fixed PIR Shard Config` (iOS 18.2). When all shard configurations are identical, `PIR Fixed Shard Config` allows for a more compact PIR config, saving bandwidth and client-side memory usage. To enable, set the `pirShardConfigs` field in the PIR config. iOS clients prior to iOS 18.2 will still require the `shardConfigs` field to be set. See [Reusing PIR Parameters]( https://swiftpackageindex.com/apple/swift-homomorphic-encryption/main/documentation/privateinformationretrieval/reusingpirparameters) for how to process the database such that all shard configurations are identical.
-
-* `Reusing existing config id` (iOS 18.2). During the `config` request, if a client has a cached configuration, it will send the config id of that cached configuration. Then, if the configuration is unchanged, the server may respond with a config setting `reuseExistingConfig = true` and omit any other fields. This helps reduce the response size for the config fetch.
-
-* `Sharding function configurability` (iOS 18.2). [Sharding
-  function](https://swiftpackageindex.com/apple/swift-homomorphic-encryption/main/documentation/pirprocessdatabase#Sharding-function)
-  can be configured. The `doubleMod` sharding function was designed specifically for the use case where multiple
-  requests are made with the same keyword, like in Live Caller ID Lookup, where we use the same phone number to look up
-  blocking information and Identity information. Note: this option is not backward compatible with older iOS versions.
-
 ### Writing the application extension
 
 > Important: Please see [Getting up-to-date calling and blocking information for your
