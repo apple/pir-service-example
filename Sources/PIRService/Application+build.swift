@@ -21,10 +21,9 @@ import NIO
 import PrivateInformationRetrieval
 import Util
 
-struct AppContext: IdentifiedRequestContext, AuthenticatedRequestContext, PlatformRequestContext, RequestContext {
+struct AppContext: IdentifiedRequestContext, PlatformRequestContext, RequestContext {
     var coreContext: CoreRequestContextStorage
     var userIdentifier: UserIdentifier
-    var userTier: UserTier
     var platform: Platform?
 
     /// override upload size to 10MiB, the default 2MiB limit is too small for some evaluation keys.
@@ -36,7 +35,6 @@ struct AppContext: IdentifiedRequestContext, AuthenticatedRequestContext, Platfo
         self.coreContext = .init(source: source)
         self.platform = nil
         self.userIdentifier = UserIdentifier(identifier: "")
-        self.userTier = .tier1
     }
 }
 
@@ -51,7 +49,7 @@ func loadUsecase(usecase: ServerConfiguration.Usecase) throws -> Usecase {
 func buildApplication(
     configuration: ApplicationConfiguration = .init(),
     usecaseStore: UsecaseStore = UsecaseStore(),
-    privacyPassState: PrivacyPassState<UserAuthenticator>? = nil,
+    privacyPassState: PrivacyPassState? = nil,
     evaluationKeyStore: some PersistDriver = MemoryPersistDriver(),
     reportStore: ReportStore = ReportStore()) async throws -> some ApplicationProtocol
 {
@@ -70,9 +68,9 @@ func buildApplication(
     if let privacyPassState {
         let controller = PrivacyPassController(state: privacyPassState)
         controller.addRoutes(to: router.group())
-        let userTierAuthenticator = AuthenticateUserTierMiddleware(AppContext.self, state: privacyPassState)
-        pirGroup.add(middleware: userTierAuthenticator)
-        reportGroup.add(middleware: userTierAuthenticator)
+        let userAuthenticator = AuthenticateUserMiddleware(AppContext.self, state: privacyPassState)
+        pirGroup.add(middleware: userAuthenticator)
+        reportGroup.add(middleware: userAuthenticator)
     }
 
     pirServiceController.addRoutes(to: pirGroup)

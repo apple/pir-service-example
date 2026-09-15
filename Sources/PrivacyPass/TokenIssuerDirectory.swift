@@ -1,4 +1,4 @@
-// Copyright 2024-2025 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2026 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -49,6 +49,15 @@ public struct TokenIssuerDirectory: Codable, Sendable {
             self.tokenKeyBase64Url = tokenKeyBase64Url
             self.notBefore = notBefore
         }
+
+        /// Returns true if the key is valid at the current time.
+        /// - Parameter currentTime: Closure that returns the current time.
+        public func isValid(at currentTime: () -> Date = Date.init) -> Bool {
+            guard let notBefore else {
+                return true
+            }
+            return currentTime().timeIntervalSince1970 >= TimeInterval(notBefore)
+        }
     }
 
     enum CodingKeys: String, CodingKey {
@@ -84,15 +93,18 @@ public struct TokenIssuerDirectory: Codable, Sendable {
     public func isValid(tokenKey: [UInt8], currentTime: () -> Date = Date.init) -> Bool {
         for key in tokenKeys where key.tokenType == PrivacyPass.TokenTypeBlindRSA {
             if tokenKey == key.tokenKey {
-                if let notBefore = key.notBefore {
-                    let now = Int(currentTime().timeIntervalSince1970)
-                    guard now >= notBefore else {
-                        return false
-                    }
-                }
-                return true
+                return key.isValid(at: currentTime)
             }
         }
         return false
+    }
+
+    /// Returns the first valid token key.
+    /// - Parameter currentTime: Closure that returns the current time.
+    /// - Returns: First valid token key.
+    public func firstValidTokenKey(currentTime: () -> Date = Date.init) -> TokenKey? {
+        tokenKeys.first { key in
+            key.tokenType == PrivacyPass.TokenTypeBlindRSA && key.isValid(at: currentTime)
+        }
     }
 }

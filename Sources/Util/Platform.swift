@@ -1,4 +1,4 @@
-// Copyright 2024 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2026 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,6 +23,11 @@ public struct Platform: Equatable, Hashable, Sendable {
     public static let macOS15 = Platform(osType: .macOS, osVersion: .init(major: 15))
     /// macOS 15.2.
     public static let macOS15_2 = Platform(osType: .macOS, osVersion: .init(major: 15, minor: 2))
+
+    /// iOS 27.3.
+    public static let iOS27_3 = Platform(osType: .iOS, osVersion: .init(major: 27, minor: 3))
+    /// macOS 27.3.
+    public static let macOS27_3 = Platform(osType: .macOS, osVersion: .init(major: 27, minor: 3))
 
     /// Operating system type.
     public let osType: OsType
@@ -81,6 +86,20 @@ public extension Platform {
             "com.apple.ciphermld/1.0 iOS/\(osVersion.major).\(osVersion.minor) ..."
         case .macOS:
             "com.apple.ciphermld/1.2 (Macintosh; OS X \(osVersion.major).\(osVersion.minor); XXXXX) ..."
+        default:
+            fatalError("Unsupported OS type: \(osType)")
+        }
+    }
+
+    /// Whether the platform requires fetching the Privacy Pass public key via `/token-key-for-user-token`.
+    ///
+    /// Newer platforms fetch the public key directly from the token issuer directory instead.
+    var requiresTokenKeyForUserToken: Bool {
+        switch osType {
+        case .iOS:
+            osVersion < Self.iOS27_3.osVersion
+        case .macOS:
+            osVersion < Self.macOS27_3.osVersion
         default:
             fatalError("Unsupported OS type: \(osType)")
         }

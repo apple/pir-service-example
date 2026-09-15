@@ -15,23 +15,10 @@
 import HTTPTypes
 import Hummingbird
 
-enum UserTier: String, Equatable, CaseIterable, Hashable, Codable {
-    case tier1
-    case tier2
-    case tier3
-}
+struct AuthenticateUserMiddleware<Context: RequestContext>: RouterMiddleware {
+    let state: PrivacyPassState
 
-protocol AuthenticatedRequestContext: RequestContext {
-    var userTier: UserTier { get set }
-}
-
-struct AuthenticateUserTierMiddleware<
-    Context: AuthenticatedRequestContext,
-    Authenticator: UserTokenAuthenticator,
->: RouterMiddleware {
-    let state: PrivacyPassState<Authenticator>
-
-    init(_: Context.Type, state: PrivacyPassState<Authenticator>) {
+    init(_: Context.Type, state: PrivacyPassState) {
         self.state = state
     }
 
@@ -39,22 +26,20 @@ struct AuthenticateUserTierMiddleware<
                 next: (Request, Context) async throws -> Response) async throws -> Response
     {
         context.logger.info("Authenticating request")
-        var context = context
         guard let token = try input.headers.privateToken() else {
             throw HTTPError(.unauthorized, message: "No private token")
         }
 
         guard let truncatedKeyId = token.tokenKeyId.last,
-              let tieredVerifier = await state.verifiers[truncatedKeyId]
+              let verifier = await state.verifiers[truncatedKeyId]
         else {
             throw HTTPError(.unauthorized, message: "No token key found with key id: \(token.tokenKeyId)")
         }
 
-        guard try await tieredVerifier.verifier.verify(token: token) else {
+        guard try await verifier.verify(token: token) else {
             throw HTTPError(.unauthorized, message: "Token did not pass verification")
         }
 
-        context.userTier = tieredVerifier.tier
         return try await next(input, context)
     }
 }

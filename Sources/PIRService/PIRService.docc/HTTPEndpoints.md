@@ -137,6 +137,10 @@ tier. The system sends the user's HTTP Bearer token to this endpoint, and the se
 the matching user tier. The system verifies that the returned public key is also present in the token issuer directory
 and that it is valid for the current time.
 
+> Note: This endpoint is retained for compatibility with clients older than iOS and macOS 27.3. Clients on iOS and
+> macOS 27.3 and later fetch a public key directly from the token issuer directory instead and do not call this
+> endpoint.
+
 Request        | Value                        | Description
 -------------- | ---------------------------- | -----------
 Method         | GET                          | HTTP method.

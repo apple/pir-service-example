@@ -61,7 +61,6 @@ struct PIRServiceController {
 
     @Sendable
     func config(_ request: Request, context: AppContext) async throws -> some ResponseGenerator {
-        context.logger.info("Tier = \(context.userTier)")
         let configRequest = try await request.decodeProto(
             as: Apple_SwiftHomomorphicEncryption_Api_Pir_V1_ConfigRequest.self,
             context: context)

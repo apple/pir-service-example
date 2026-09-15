@@ -1,4 +1,4 @@
-// Copyright 2024 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2026 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@ import Foundation
 import Hummingbird
 import PrivacyPass
 
-struct PrivacyPassController<UserAuthenticator: UserTokenAuthenticator> {
-    let state: PrivacyPassState<UserAuthenticator>
+struct PrivacyPassController {
+    let state: PrivacyPassState
 
     func addRoutes(to group: RouterGroup<AppContext>) {
         group.get("/.well-known/private-token-issuer-directory", use: tokenIssuerDirectory)
@@ -25,41 +25,34 @@ struct PrivacyPassController<UserAuthenticator: UserTokenAuthenticator> {
         group.post("/issue", use: issueToken)
     }
 
-    func authenticateUserToken(request: Request) async throws -> UserTier {
+    func authenticateUserToken(request: Request) async throws {
         guard let userToken = request.headers.bearerToken,
-              let userTier = try await state.userAuthenticator.authenticate(userToken: userToken)
+              await state.authenticate(userToken: userToken)
         else {
             throw HTTPError(.unauthorized, message: "User token is unauthorized")
         }
-        return userTier
     }
 
     @Sendable
     func tokenIssuerDirectory(request _: Request, context _: AppContext) async throws -> TokenIssuerDirectory {
-        let tokenKeys = try await state.issuers.values.map(\.privateKey.publicKey).map { publicKey in
-            let spki = try publicKey.spki()
-            return TokenIssuerDirectory.TokenKey(
-                tokenType: PrivacyPass.TokenTypeBlindRSA,
-                tokenKeyBase64Url: spki.base64URLEncodedString(),
-                notBefore: nil)
-        }
-        // swiftlint:disable:next force_unwrapping
+        let spki = try state.issuer.privateKey.publicKey.spki()
+        let tokenKey = TokenIssuerDirectory.TokenKey(
+            tokenType: PrivacyPass.TokenTypeBlindRSA,
+            tokenKeyBase64Url: spki.base64URLEncodedString(),
+            notBefore: nil)
         let issuerRequestUri = URL(string: "/issue")!
-        return TokenIssuerDirectory(issuerRequestUri: issuerRequestUri, tokenKeys: tokenKeys)
+        return TokenIssuerDirectory(issuerRequestUri: issuerRequestUri, tokenKeys: [tokenKey])
     }
 
     @Sendable
     func tokenKeyForUserToken(request: Request, context _: AppContext) async throws -> PrivacyPass.PublicKey {
-        let userTier = try await authenticateUserToken(request: request)
-        guard let issuer = await state.issuers[userTier] else {
-            throw HTTPError(.internalServerError, message: "Could not find issuer for tier \(userTier)")
-        }
-        return issuer.publicKey
+        try await authenticateUserToken(request: request)
+        return state.issuer.publicKey
     }
 
     @Sendable
     func issueToken(request: Request, context _: AppContext) async throws -> PrivacyPass.TokenResponse {
-        let userTier = try await authenticateUserToken(request: request)
+        try await authenticateUserToken(request: request)
         // decode tokenRequest
         var tokenRequestByteBuffer = try await request.body.collect(upTo: PrivacyPass.TokenRequest.sizeInBytes)
         guard let tokenRequestBytes = tokenRequestByteBuffer.readBytes(length: PrivacyPass.TokenRequest.sizeInBytes)
@@ -67,11 +60,6 @@ struct PrivacyPassController<UserAuthenticator: UserTokenAuthenticator> {
             throw PrivacyPass.PrivacyPassError(code: .invalidTokenRequestSize)
         }
         let tokenRequest = try PrivacyPass.TokenRequest(from: tokenRequestBytes)
-
-        guard let issuer = await state.issuers[userTier] else {
-            throw HTTPError(.internalServerError, message: "Could not find issuer for tier \(userTier)")
-        }
-
-        return try issuer.issue(request: tokenRequest)
+        return try state.issuer.issue(request: tokenRequest)
     }
 }

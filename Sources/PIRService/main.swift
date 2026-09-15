@@ -29,7 +29,7 @@ struct ServerCommand: AsyncParsableCommand {
 
     func run() async throws {
         let usecaseStore = UsecaseStore()
-        let privacyPassState = try PrivacyPassState(userAuthenticator: UserAuthenticator())
+        let privacyPassState = try PrivacyPassState()
         let reportStore = ReportStore()
 
         let app = try await buildApplication(

@@ -1,4 +1,4 @@
-// Copyright 2024-2025 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2026 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,14 +39,12 @@ extension PIRClient {
             path: "/token-key-for-user-token",
             body: [],
             headers: [.authorization: "Bearer \(authenticationToken)"])
-
         let body = Array(buffer: response.body)
         guard response.status == .ok else {
             throw PIRClientError.failedToFetchTokenPublicKey(
                 status: response.status,
                 message: String(data: Data(body), encoding: .utf8) ?? "<\(body.count) bytes of binary response>")
         }
-
         return try PublicKey(fromSPKI: body)
     }
 
@@ -56,10 +54,20 @@ extension PIRClient {
         }
 
         let tokenIssuerDirectory = try await fetchTokenDirectory()
-        let publicKey = try await fetchPublicKeyForUserToken(authenticationToken: userToken)
-
-        guard try tokenIssuerDirectory.isValid(tokenKey: publicKey.spki()) else {
-            throw PIRClientError.invalidTokenIssuerPublicKey
+        let publicKey: PublicKey
+        if platform.requiresTokenKeyForUserToken {
+            publicKey = try await fetchPublicKeyForUserToken(authenticationToken: userToken)
+            let spki = try publicKey.spki()
+            guard tokenIssuerDirectory.isValid(tokenKey: spki) else {
+                throw PIRClientError.invalidTokenIssuerPublicKey
+            }
+        } else {
+            guard let rawPublicKey = tokenIssuerDirectory.firstValidTokenKey(),
+                  let publicKeySPKI = rawPublicKey.tokenKey
+            else {
+                throw PIRClientError.invalidTokenIssuerPublicKey
+            }
+            publicKey = try PublicKey(fromSPKI: publicKeySPKI)
         }
 
         let connection = connection

@@ -52,14 +52,46 @@ struct PIRServiceTests {
     func requestWithPrivacyPass() async throws {
         let usecaseStore = UsecaseStore()
         try await usecaseStore.set(name: "test", usecase: ExampleUsecase.hundred)
-        let userAuthenticator = UserAuthenticator()
-        await userAuthenticator.add(token: "ABCD", tier: .tier1)
-        let privacyPassState = try PrivacyPassState(userAuthenticator: userAuthenticator)
+        let privacyPassState = try PrivacyPassState()
+        await privacyPassState.add(token: "ABCD")
         let app = try await buildApplication(usecaseStore: usecaseStore, privacyPassState: privacyPassState)
         try await app.test(.live) { client in
             var pirClient = PIRClient<MulPirClient<Bfv<UInt32>>>(connection: client, userToken: "ABCD")
             let result = try await pirClient.request(keyword: "23")
             #expect(result == "23")
+        }
+    }
+
+    @Test
+    func requestWithPrivacyPassTokenIssuerDirectory() async throws {
+        let usecaseStore = UsecaseStore()
+        try await usecaseStore.set(name: "test", usecase: ExampleUsecase.hundred)
+        let privacyPassState = try PrivacyPassState()
+        await privacyPassState.add(token: "ABCD")
+        let app = try await buildApplication(usecaseStore: usecaseStore, privacyPassState: privacyPassState)
+        try await app.test(.live) { client in
+            // iOS 27.3 uses the token issuer directory to fetch the public key
+            var pirClient = PIRClient<MulPirClient<Bfv<UInt32>>>(
+                connection: client,
+                platform: .iOS27_3,
+                userToken: "ABCD")
+            let result = try await pirClient.request(keyword: "23")
+            #expect(result == "23")
+
+            // Unauthorized token is rejected at /issue
+            var unauthorizedClient = PIRClient<MulPirClient<Bfv<UInt32>>>(
+                connection: client,
+                platform: .iOS27_3,
+                userToken: "INVALID")
+            await #expect { try await unauthorizedClient.request(keyword: "23") }
+                throws: { error in
+                    if let error = error as? PIRClientError,
+                       case let .failedToFetchToken(status, _) = error
+                    {
+                        return status == .unauthorized
+                    }
+                    return false
+                }
         }
     }
 
@@ -108,8 +140,7 @@ struct PIRServiceTests {
     func addingAndRemovingUserTokens() async throws {
         let usecaseStore = UsecaseStore()
         try await usecaseStore.set(name: "test", usecase: ExampleUsecase.hundred)
-        let userAuthenticator = UserAuthenticator()
-        let privacyPassState = try PrivacyPassState(userAuthenticator: userAuthenticator)
+        let privacyPassState = try PrivacyPassState()
         let app = try await buildApplication(usecaseStore: usecaseStore, privacyPassState: privacyPassState)
         try await app.test(.live) { client in
             var pirClient = PIRClient<MulPirClient<Bfv<UInt32>>>(connection: client, userToken: "ABCD")
@@ -124,12 +155,12 @@ struct PIRServiceTests {
                 }
 
             // after adding the user token, the request should succeed
-            await userAuthenticator.add(token: "ABCD", tier: .tier1)
+            await privacyPassState.add(token: "ABCD")
 
             _ = try await pirClient.request(keyword: "42")
 
             // remove the user token
-            await userAuthenticator.update(allowList: [:])
+            await privacyPassState.update(allowList: [])
 
             // at least one more request should succeed because of cached tokens
             _ = try await pirClient.request(keyword: "42")
@@ -146,6 +177,39 @@ struct PIRServiceTests {
                 }
                 return false
             }
+        }
+    }
+
+    @Test
+    func requestWithPrivacyPassTokenKeyForUserToken() async throws {
+        let usecaseStore = UsecaseStore()
+        try await usecaseStore.set(name: "test", usecase: ExampleUsecase.hundred)
+        let privacyPassState = try PrivacyPassState()
+        await privacyPassState.add(token: "ABCD")
+        let app = try await buildApplication(usecaseStore: usecaseStore, privacyPassState: privacyPassState)
+        try await app.test(.live) { client in
+            // iOS18 uses /token-key-for-user-token to fetch the public key
+            var pirClient = PIRClient<MulPirClient<Bfv<UInt32>>>(
+                connection: client,
+                platform: .iOS18,
+                userToken: "ABCD")
+            let result = try await pirClient.request(keyword: "23")
+            #expect(result == "23")
+
+            // Unauthorized token is rejected at /token-key-for-user-token
+            var unauthorizedClient = PIRClient<MulPirClient<Bfv<UInt32>>>(
+                connection: client,
+                platform: .iOS18,
+                userToken: "INVALID")
+            await #expect { try await unauthorizedClient.request(keyword: "23") }
+                throws: { error in
+                    if let error = error as? PIRClientError,
+                       case let .failedToFetchTokenPublicKey(status, _) = error
+                    {
+                        return status == .unauthorized
+                    }
+                    return false
+                }
         }
     }
 
