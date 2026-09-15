@@ -27,9 +27,8 @@ import Util
 struct ReportPrivacyPassTests {
     @Test
     func reportRejectedWithoutPrivacyPassToken() async throws {
-        let userAuthenticator = UserAuthenticator()
-        await userAuthenticator.add(token: "ABCD", tier: .tier1)
-        let privacyPassState = try PrivacyPassState(userAuthenticator: userAuthenticator)
+        let privacyPassState = try PrivacyPassState()
+        await privacyPassState.add(token: "ABCD")
         let app = try await buildApplication(privacyPassState: privacyPassState)
 
         try await app.test(.live) { client in
@@ -50,9 +49,8 @@ struct ReportPrivacyPassTests {
 
     @Test
     func reportAcceptedWithToken() async throws {
-        let userAuthenticator = UserAuthenticator()
-        await userAuthenticator.add(token: "ABCD", tier: .tier1)
-        let privacyPassState = try PrivacyPassState(userAuthenticator: userAuthenticator)
+        let privacyPassState = try PrivacyPassState()
+        await privacyPassState.add(token: "ABCD")
         let app = try await buildApplication(privacyPassState: privacyPassState)
 
         try await app.test(.live) { client in

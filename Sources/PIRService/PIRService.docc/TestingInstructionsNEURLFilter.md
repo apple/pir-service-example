@@ -143,16 +143,7 @@ Copy the following to a file called `service-config.json`.
 
 ```json
 {
-  "users": [
-    {
-      "tier": "tier1",
-      "tokens": ["AAAA"]
-    },
-    {
-      "tier": "tier2",
-      "tokens": ["BBBB", "CCCC"]
-    }
-  ],
+  "tokens": ["AAAA", "BBBB", "CCCC"],
   "usecases": [
     {
       "fileStem": "url",
@@ -162,9 +153,9 @@ Copy the following to a file called `service-config.json`.
   ]
 }
 ```
-This configuration file has 3 sections.
+This configuration file has 2 sections.
 
-1. `users` - This is a mapping from user tiers to User Tokens that are allowed for that tier. The User tokens are
+1. `tokens` - A list of User Tokens that are allowed to access the service. The tokens are
    already base64 encoded as they appear in the HTTP `Authorization` header.
 2. `usecases` - This is a list of usecases, where each usecase has the `fileStem`, `shardCount`, and `name`. When
    loading the usecase, `PIRService` does something like:
@@ -203,16 +194,7 @@ pointing at an existing directory:
 ```json
 {
   "reportDirectory": "/Users/example/testing/reports",
-  "users": [
-    {
-      "tier": "tier1",
-      "tokens": ["AAAA"]
-    },
-    {
-      "tier": "tier2",
-      "tokens": ["BBBB", "CCCC"]
-    }
-  ],
+  "tokens": ["AAAA", "BBBB", "CCCC"],
   "usecases": [
     {
       "fileStem": "url",

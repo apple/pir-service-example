@@ -15,39 +15,32 @@
 import Foundation
 import PrivacyPass
 
-protocol UserTokenAuthenticator: Sendable {
-    func authenticate(userToken: String) async throws -> UserTier?
-}
+actor PrivacyPassState {
+    var allowList: Set<String>
+    let issuer: PrivacyPass.Issuer
+    /// map from truncated key id to verifier
+    var verifiers: [UInt8: PrivacyPass.Verifier<InMemoryNonceStore>]
 
-actor PrivacyPassState<UserAuthenticator: UserTokenAuthenticator> {
-    struct TieredVerifier {
-        let verifier: PrivacyPass.Verifier<InMemoryNonceStore>
-        let tier: UserTier
+    init() throws {
+        let issuer = try PrivacyPass.Issuer(privateKey: .init())
+        self.allowList = []
+        self.issuer = issuer
+        self.verifiers = [
+            issuer.truncatedTokenKeyId: PrivacyPass.Verifier(
+                publicKey: issuer.publicKey,
+                nonceStore: InMemoryNonceStore()),
+        ]
     }
 
-    let userAuthenticator: UserAuthenticator
-    /// map from tier to issuer
-    var issuers: [UserTier: PrivacyPass.Issuer]
-    /// map from truncate key id to verifier & tier
-    var verifiers: [UInt8: TieredVerifier]
+    func authenticate(userToken: String) -> Bool {
+        allowList.contains(userToken)
+    }
 
-    init(userAuthenticator: UserAuthenticator) throws {
-        var issuers: [UserTier: PrivacyPass.Issuer] = [:]
-        var verifiers: [UInt8: TieredVerifier] = [:]
-        // generate issuers for each user tier and avoid truncated key id collisions
-        for tier in UserTier.allCases {
-            var issuer: PrivacyPass.Issuer
-            repeat {
-                issuer = try PrivacyPass.Issuer(privateKey: .init())
-            } while verifiers[issuer.truncatedTokenKeyId] != nil
-            issuers[tier] = issuer
-            verifiers[issuer.truncatedTokenKeyId] = TieredVerifier(
-                verifier: PrivacyPass.Verifier(publicKey: issuer.publicKey, nonceStore: InMemoryNonceStore()),
-                tier: tier)
-        }
+    func add(token: String) {
+        allowList.insert(token)
+    }
 
-        self.userAuthenticator = userAuthenticator
-        self.issuers = issuers
-        self.verifiers = verifiers
+    func update(allowList: Set<String>) {
+        self.allowList = allowList
     }
 }

@@ -53,28 +53,23 @@ struct ServerConfiguration: Codable {
         let symmetricPirArguments: SymmetricPirArguments?
     }
 
-    struct UserGroup: Codable {
-        let tier: UserTier
-        let tokens: [String]
-    }
-
     let issuerRequestUri: String?
     let reportDirectory: String?
-    let users: [UserGroup]
+    let tokens: [String]
     let usecases: [Usecase]
 }
 
 actor ReloadService: Service {
     let configFile: URL
     let usecaseStore: UsecaseStore
-    let privacyPassState: PrivacyPassState<UserAuthenticator>
+    let privacyPassState: PrivacyPassState
     let reportStore: ReportStore
     let logger: Logger
 
     init(
         configFile: URL,
         usecaseStore: UsecaseStore,
-        privacyPassState: PrivacyPassState<UserAuthenticator>,
+        privacyPassState: PrivacyPassState,
         reportStore: ReportStore,
         logger: Logger)
     {
@@ -107,22 +102,7 @@ actor ReloadService: Service {
         let configData = try Data(contentsOf: configFile)
         let config = try JSONDecoder().decode(ServerConfiguration.self, from: configData)
 
-        var allowedUsers: [String: UserTier] = [:]
-        for userGroup in config.users {
-            let tier = userGroup.tier
-            for token in userGroup.tokens {
-                if let existingTier = allowedUsers[token],
-                   existingTier != tier
-                {
-                    logger.warning("""
-                        User token '\(token)' is assigned to multiple tiers '\(existingTier)' \
-                        and '\(tier)', using the latter.
-                        """)
-                }
-                allowedUsers[token] = tier
-            }
-        }
-        await privacyPassState.userAuthenticator.update(allowList: allowedUsers)
+        await privacyPassState.update(allowList: Set(config.tokens))
         await reportStore.set(reportDirectory: config.reportDirectory)
 
         for usecase in config.usecases {

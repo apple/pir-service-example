@@ -30,16 +30,7 @@ Next, we have to instruct the service that this is a Symmetric PIR use-case and 
 
 ```json
 {
-  "users": [
-    {
-      "tier": "tier1",
-      "tokens": ["AAAA"]
-    },
-    {
-      "tier": "tier2",
-      "tokens": ["BBBB", "CCCC"]
-    }
-  ],
+  "tokens": ["AAAA", "BBBB", "CCCC"],
   "usecases": [
     {
       "fileStem": "url",
