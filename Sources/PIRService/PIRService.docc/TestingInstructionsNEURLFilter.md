@@ -241,7 +241,7 @@ public func setConfiguration(pirServerURL: URL,
                              controlProviderBundleIdentifier: String) throws
 ```
 
-This example service provides both the service itself and the Privacy Pass token issuer. So we should set the `pirServerURL` and `pirPrivacyPassIssuerURL` both to the same value: `http://lookup.example.net:8080`. For the `pirAuthenticationToken`, please set it to one of the values that you added in the service configuration file in <doc:Running-the-service>, for example `BBBB`.  Specify the bundle identifier of your `NEURLFilterControlProvider` app extension also.  Optionally configure other URL Filter parameters, such as `prefilterFetchInterval` to specify how often your app extension should run to fetch your Bloom filter onto device.  Now you can enable and save your URL Filter configuration, and your URL filter will take effect.
+This example service provides both the service itself and the Privacy Pass token issuer. So we should set the `pirServerURL` and `pirPrivacyPassIssuerURL` both to the same value: `http://lookup.example.net:8080`. For the `pirAuthenticationToken`, please set it to one of the values that you added in the service configuration file in <doc:#Running-the-service>, for example `BBBB`.  Specify the bundle identifier of your `NEURLFilterControlProvider` app extension also.  Optionally configure other URL Filter parameters, such as `prefilterFetchInterval` to specify how often your app extension should run to fetch your Bloom filter onto device.  Now you can enable and save your URL Filter configuration, and your URL filter will take effect.
 
 ### Writing the application extension
 

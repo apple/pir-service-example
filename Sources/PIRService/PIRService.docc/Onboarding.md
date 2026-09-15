@@ -54,6 +54,31 @@ http://example.net/ - trailing '/' needs to be removed
 > of HTTPS. This eases local testing and development. However, the system applies these URL checks when your app is
 > installed from the App Store.
 
+##### Declaring URLs in Info.plist
+
+Starting in iOS and macOS 27.3, your service URL and Privacy Pass issuer URL must also be declared statically in your
+app extension's Info.plist, rather than provided only at runtime. Add a top-level `NSPIRConfiguration` dictionary
+with a `PIRServerURL` key and a `PrivacyPassIssuerURL` key; only a host is allowed (no custom paths, query
+parameters, or other components). How this interacts with values passed at registration varies by use case, as
+described below:
+
+```xml
+<key>NSPIRConfiguration</key>
+<dict>
+    <key>PIRServerURL</key>
+    <string>https://pir.example.com</string>
+    <key>PrivacyPassIssuerURL</key>
+    <string>https://issuer.example.com</string>
+</dict>
+```
+
+* Live Caller ID Lookup: `PIRServerURL` is equivalent to the `serviceURL` property and `PrivacyPassIssuerURL` is
+  equivalent to `tokenIssuerURL`. Both keys are required; devices on iOS and macOS 27.3 ignore any value passed at
+  registration and use the Info.plist values instead.
+* NEURLFilter: `PIRServerURL` is equivalent to the `pirServerURL` property and `PrivacyPassIssuerURL` is equivalent to
+  `pirPrivacyPassIssuerURL`. `PrivacyPassIssuerURL` is optional and defaults to the value of `PIRServerURL` when
+  absent; devices on iOS and macOS 27.3 reject any mismatch between runtime values and Info.plist.
+
 #### HTTP Bearer Token / UserToken
 The `userToken` field is of type `String` and the system sets the "Authorization" header like this:
 ```swift

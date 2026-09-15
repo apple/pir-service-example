@@ -5,7 +5,7 @@ Example service for Live Caller ID Lookup and NEURLFilter
 ## Overview
 
 This service is a non-scalable example that can be used to test both Live Caller ID Lookup and NEURLFilter features. Please see
-<doc:TestingInstructionsLiveCallerIdLookup> and <doc:TestingInstructionsNEURLFilter> to see instructions on how to run the example service and connect your phone to the service.
+<doc:TestingInstructionsLiveCallerIDLookup> and <doc:TestingInstructionsNEURLFilter> to see instructions on how to run the example service and connect your phone to the service.
 
 ### Live Caller ID Lookup
 

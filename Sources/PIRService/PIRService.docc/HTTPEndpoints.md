@@ -35,6 +35,10 @@ Response field | `configs`          | Map from use case names to the correspondi
 
 The `key_info` field in the response will always be empty because no user identifier is provided.
 
+> Note: Starting in iOS and macOS 27.3, this is the endpoint the system fetches through Apple infrastructure instead
+> of calling your service directly — it works for this purpose specifically because it requires no authentication or
+> `User-Identifier`. Continue to serve it as described above; expect caching to delay config propagation to clients.
+
 ### Get configuration and status
 The system calls the configuration endpoint periodically to get information about the use case configuration and
 evaluation key status.
@@ -81,6 +85,11 @@ Header         | `User-Agent`       | Identifier for the user's OS type and vers
 Header         | `User-Identifier`  | Pseudorandom identifier tied to a user.
 Request Body   | `Requests`         | Serialized Protobuf message.
 Response       | `Responses`        | Serialized Protobuf message.
+
+> Note: Starting in iOS and macOS 27.3, `Requests` may include a fresh evaluation key directly as a fallback to a
+> previously uploaded one. The system tries to keep a set of unused evaluation keys uploaded to the server; when it
+> runs out of pre-uploaded keys, it falls back to sending an evaluation key inline with the request. When present,
+> use the inline key directly instead of looking one up by `User-Identifier`.
 
 ### Report blocked URLs for NEURLFilter
 This optional endpoint is used only by the NEURLFilter. It accepts reports of blocked URLs from the system. The
