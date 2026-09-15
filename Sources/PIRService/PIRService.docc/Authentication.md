@@ -44,8 +44,10 @@ the issuer name. Redemption context and origin info fields are left unset.
 The token request includes the User Token in the `Authorization` HTTP header.
 
 > Note: The `/token-key-for-user-token` endpoint is retained for compatibility with clients older than iOS and macOS
-> 27.3. Clients on iOS and macOS 27.3 and later select a public key directly from the Token Issuer Directory returned
-> in step 6.
+> 27.3; clients on iOS and macOS 27.3 and later no longer associate keys with user tiers and instead select the
+> first valid public key directly from the Token Issuer Directory returned in step 6. Remove all but one token key
+> from your directory if you no longer need to support multiple tiers; if you still need multiple service tiers for
+> Live Caller ID Lookup, register a separate app extension per tier so users can choose which to enable.
 
 ### How the system fetches tokens
 
