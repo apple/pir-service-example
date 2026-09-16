@@ -10,7 +10,7 @@ Changes are organized by the OS release that introduced them, most recent first.
 
 These changes are not yet enforced on shipping releases.
 
-> Note: A [test profile](https://download.developer.apple.com//Developer_Tools/Live_Caller_ID_Lookup_and_NEURLFilter_Early_Enforcement_Test_Profile/Enable_Live_Caller_ID_and_NEURLFilter_Enforcement.mobileconfig)
+> Note: A [test profile](https://developer.apple.com/download/all/?q=Live%20Caller%20ID%20Lookup%20NEURLFilter)
 > is available for iOS and macOS 27.2 betas that activates the 27.3 behavior below early, so you can test your
 > adoption before it's enforced in 27.3.
 
