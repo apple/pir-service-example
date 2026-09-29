@@ -56,11 +56,15 @@ http://example.net/ - trailing '/' needs to be removed
 
 ##### Declaring URLs in Info.plist
 
-Starting in iOS and macOS 27.3, your service URL and Privacy Pass issuer URL must also be declared statically in your
-app extension's Info.plist, rather than provided only at runtime. Add a top-level `NSPIRConfiguration` dictionary
-with a `PIRServerURL` key and a `PrivacyPassIssuerURL` key; only a host is allowed (no custom paths, query
-parameters, or other components). How this interacts with values passed at registration varies by use case, as
-described below:
+Starting in iOS and macOS 27.3, your service URL and Privacy Pass issuer URL must also be declared statically in an
+Info.plist, rather than provided only at runtime. Which Info.plist depends on the use case:
+
+* Live Caller ID Lookup: your app extension's Info.plist.
+* NEURLFilter: your app's Info.plist, not the URL filter extension's.
+
+Add a top-level `NSPIRConfiguration` dictionary with a `PIRServerURL` key and a `PrivacyPassIssuerURL` key; only a
+host is allowed (no custom paths, query parameters, or other components). How this interacts with values passed at
+registration varies by use case, as described below:
 
 ```xml
 <key>NSPIRConfiguration</key>

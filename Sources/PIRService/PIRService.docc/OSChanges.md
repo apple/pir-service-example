@@ -32,8 +32,9 @@ These changes are not yet enforced on shipping releases.
   > in 27.3.
 
 * `Static service URLs in Info.plist` (iOS and macOS 27.3). The service URL and Privacy Pass issuer URL must be
-  declared statically in your app extension's `NSPIRConfiguration` Info.plist entry, rather than provided
-  dynamically at runtime. See <doc:Onboarding> for the required keys and how they map to your existing URLs.
+  declared statically in an `NSPIRConfiguration` Info.plist entry, rather than provided dynamically at runtime. For
+  Live Caller ID Lookup, add it to your app extension's Info.plist; for NEURLFilter, add it to your app's Info.plist.
+  See <doc:Onboarding> for the required keys and how they map to your existing URLs.
 
 * `User tier support removed` (iOS and macOS 27.3). Devices no longer call `/token-key-for-user-token`; the system
   always uses the first valid key in the token issuer directory instead. See <doc:Authentication> for the current
