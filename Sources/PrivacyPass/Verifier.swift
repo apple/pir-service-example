@@ -61,8 +61,8 @@ public struct Verifier<NonceStore: NonceStoring>: Sendable {
             }
         }
 
-        // verify that the nonce has not been redeemed already
-        guard try await !nonceStore.contains(nonce: token.nonce) else {
+        // skip the signature check for a nonce that is known to be redeemed already
+        guard try await !nonceStore.definitelyContains(nonce: token.nonce) else {
             return false
         }
 
@@ -86,10 +86,10 @@ public struct Verifier<NonceStore: NonceStoring>: Sendable {
         inputMessage.append(contentsOf: token.tokenKeyId)
         let preparedMessage = publicKey.backing.prepare(inputMessage)
         let blindSignature = _RSA.Signing.RSASignature(rawRepresentation: token.authenticator)
-        let validToken = publicKey.backing.isValidSignature(blindSignature, for: preparedMessage)
-        if validToken {
-            try await nonceStore.store(nonce: token.nonce)
+        guard publicKey.backing.isValidSignature(blindSignature, for: preparedMessage) else {
+            return false
         }
-        return validToken
+        // the atomic insert is the double spend check: of concurrent redemptions of one token, only one inserts
+        return try await nonceStore.insert(nonce: token.nonce)
     }
 }
