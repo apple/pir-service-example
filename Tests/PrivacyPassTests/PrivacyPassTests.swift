@@ -22,15 +22,6 @@ struct PrivacyPassTests {
         case invalidHexString
     }
 
-    /// Keeps the default `definitelyContains`, so only `insert` can catch a second redemption.
-    private actor InsertOnlyNonceStore: NonceStoring {
-        private var nonces: Set<[UInt8]> = []
-
-        func insert(nonce: [UInt8]) async throws -> Bool {
-            nonces.insert(nonce).inserted
-        }
-    }
-
     private func unhex(_ hexString: String) throws -> [UInt8] {
         guard let array = Array(hexEncoded: hexString) else {
             throw InvalidHexString.invalidHexString
@@ -74,22 +65,34 @@ struct PrivacyPassTests {
     func noConcurrentDoubleSpend() async throws {
         let privateKey = try PrivacyPass.PrivateKey()
         let publicKey = privateKey.publicKey
-        let preparedRequest = try publicKey.request(challenge: [1, 2, 3])
         let issuer = try PrivacyPass.Issuer(privateKey: privateKey)
-        let response = try issuer.issue(request: preparedRequest.tokenRequest)
-        let token = try preparedRequest.finalize(response: response)
-        let verifier = PrivacyPass.Verifier(publicKey: publicKey, nonceStore: InMemoryNonceStore())
-        let accepted = try await withThrowingTaskGroup(of: Bool.self) { group in
-            for _ in 0..<8 {
-                group.addTask { try await verifier.verify(token: token) }
+        // the race depends on task scheduling, so a single trial can miss it
+        for _ in 0..<10 {
+            let preparedRequest = try publicKey.request(challenge: [1, 2, 3])
+            let response = try issuer.issue(request: preparedRequest.tokenRequest)
+            let token = try preparedRequest.finalize(response: response)
+            let verifier = PrivacyPass.Verifier(publicKey: publicKey, nonceStore: InMemoryNonceStore())
+            let accepted = try await withThrowingTaskGroup(of: Bool.self) { group in
+                for _ in 0..<8 {
+                    group.addTask { try await verifier.verify(token: token) }
+                }
+                return try await group.reduce(0) { $0 + ($1 ? 1 : 0) }
             }
-            return try await group.reduce(0) { $0 + ($1 ? 1 : 0) }
+            #expect(accepted == 1)
         }
-        #expect(accepted == 1)
     }
 
     @Test
     func noDoubleSpendWithoutDefinitelyContains() async throws {
+        // Keeps the default `definitelyContains`, so only `insert` can catch a second redemption.
+        actor InsertOnlyNonceStore: NonceStoring {
+            private var nonces: Set<[UInt8]> = []
+
+            func insert(nonce: [UInt8]) async throws -> Bool {
+                nonces.insert(nonce).inserted
+            }
+        }
+
         let privateKey = try PrivacyPass.PrivateKey()
         let publicKey = privateKey.publicKey
         let preparedRequest = try publicKey.request(challenge: [1, 2, 3])

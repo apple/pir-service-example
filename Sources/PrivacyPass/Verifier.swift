@@ -1,4 +1,4 @@
-// Copyright 2024 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2026 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,14 +37,17 @@ public struct Verifier<NonceStore: NonceStoring>: Sendable {
         self.challengeDigest = challengeDigest
     }
 
-    /// Verify that the token is valid.
+    /// Verify that the token is valid, and redeem it.
     ///
     /// This function verifies that the given token has:
     ///  - correct token type,
     ///  - correct challenge digest (if present in the verifier),
-    ///  - valid signature.
+    ///  - valid signature,
+    ///  - a nonce that has not been redeemed before.
+    ///
+    /// A successful call inserts the nonce into ``nonceStore``, so verifying the same token again returns false.
     /// - Parameter token: The token whose validity is being verified.
-    /// - Returns: If the token is valid.
+    /// - Returns: True, if the token is valid and this call redeemed it.
     /// - seealso: [RFC 9578: Token Verification](https://www.rfc-editor.org/rfc/rfc9578#name-token-verification-2)
     public func verify(token: Token) async throws -> Bool {
         // fast return, when token type or token key id are invalid

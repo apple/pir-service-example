@@ -1,4 +1,4 @@
-// Copyright 2024 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2026 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,9 +29,9 @@ public protocol NonceStoring: Sendable {
 
     /// Atomically insert a nonce, unless it is already in the store.
     ///
-    /// Of concurrent calls with the same nonce, at most one may return true.
+    /// Only one call returns true for a given nonce, even when several calls with that nonce run concurrently.
     /// - Parameter nonce: The nonce of the token being redeemed.
-    /// - Returns: True, if the nonce was not in the store before this call.
+    /// - Returns: True, if this call inserted the nonce; false, if it was already in the store.
     func insert(nonce: [UInt8]) async throws -> Bool
 }
 
