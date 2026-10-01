@@ -1,4 +1,4 @@
-// Copyright 2024 Apple Inc. and the Swift Homomorphic Encryption project authors
+// Copyright 2024-2026 Apple Inc. and the Swift Homomorphic Encryption project authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,14 +37,17 @@ public struct Verifier<NonceStore: NonceStoring>: Sendable {
         self.challengeDigest = challengeDigest
     }
 
-    /// Verify that the token is valid.
+    /// Verify that the token is valid, and redeem it.
     ///
     /// This function verifies that the given token has:
     ///  - correct token type,
     ///  - correct challenge digest (if present in the verifier),
-    ///  - valid signature.
+    ///  - valid signature,
+    ///  - a nonce that has not been redeemed before.
+    ///
+    /// A successful call inserts the nonce into ``nonceStore``, so verifying the same token again returns false.
     /// - Parameter token: The token whose validity is being verified.
-    /// - Returns: If the token is valid.
+    /// - Returns: True, if the token is valid and this call redeemed it.
     /// - seealso: [RFC 9578: Token Verification](https://www.rfc-editor.org/rfc/rfc9578#name-token-verification-2)
     public func verify(token: Token) async throws -> Bool {
         // fast return, when token type or token key id are invalid
@@ -61,8 +64,8 @@ public struct Verifier<NonceStore: NonceStoring>: Sendable {
             }
         }
 
-        // verify that the nonce has not been redeemed already
-        guard try await !nonceStore.contains(nonce: token.nonce) else {
+        // skip the signature check for a nonce that is known to be redeemed already
+        guard try await !nonceStore.definitelyContains(nonce: token.nonce) else {
             return false
         }
 
@@ -86,10 +89,10 @@ public struct Verifier<NonceStore: NonceStoring>: Sendable {
         inputMessage.append(contentsOf: token.tokenKeyId)
         let preparedMessage = publicKey.backing.prepare(inputMessage)
         let blindSignature = _RSA.Signing.RSASignature(rawRepresentation: token.authenticator)
-        let validToken = publicKey.backing.isValidSignature(blindSignature, for: preparedMessage)
-        if validToken {
-            try await nonceStore.store(nonce: token.nonce)
+        guard publicKey.backing.isValidSignature(blindSignature, for: preparedMessage) else {
+            return false
         }
-        return validToken
+        // the atomic insert is the double spend check: of concurrent redemptions of one token, only one inserts
+        return try await nonceStore.insert(nonce: token.nonce)
     }
 }
