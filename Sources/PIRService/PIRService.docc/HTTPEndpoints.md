@@ -35,9 +35,9 @@ Response field | `configs`          | Map from use case names to the correspondi
 
 The `key_info` field in the response will always be empty because no user identifier is provided.
 
-> Note: Starting in iOS and macOS 27.3, this is the endpoint the system fetches through Apple infrastructure instead
-> of calling your service directly — it works for this purpose specifically because it requires no authentication or
-> `User-Identifier`. Continue to serve it as described above; expect caching to delay config propagation to clients.
+> Note: In a future release (postponed; not in iOS and macOS 27.3), this is the endpoint the system will fetch through
+> Apple infrastructure instead of calling your service directly — it works for this purpose specifically because it
+> requires no authentication or `User-Identifier`. Continue to serve it as described above; expect caching to delay config propagation to clients.
 
 ### Get configuration and status
 The system calls the configuration endpoint periodically to get information about the use case configuration and
@@ -146,9 +146,10 @@ tier. The system sends the user's HTTP Bearer token to this endpoint, and the se
 the matching user tier. The system verifies that the returned public key is also present in the token issuer directory
 and that it is valid for the current time.
 
-> Note: This endpoint is retained for compatibility with clients older than iOS and macOS 27.3. Clients on iOS and
-> macOS 27.3 and later fetch a public key directly from the token issuer directory instead and do not call this
-> endpoint.
+> Note: This endpoint is retained for compatibility with older clients. NEURLFilter clients on iOS and macOS 27.3 and
+> later fetch a public key directly from the token issuer directory instead and do not call this endpoint. For Live
+> Caller ID Lookup, removal of user tiers is postponed and will not be enabled in 27.3; devices continue to call this
+> endpoint until it ships.
 
 Request        | Value                        | Description
 -------------- | ---------------------------- | -----------
