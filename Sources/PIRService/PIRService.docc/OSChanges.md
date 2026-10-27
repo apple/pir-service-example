@@ -4,39 +4,52 @@ Learn about OS changes that affect PIR service providers.
 
 ## Overview
 
-Changes are organized by the OS release that introduced them, most recent first.
+Released changes are organized by the OS release that introduced them, most recent first.
 
 ### Upcoming changes
 
-These changes are not yet enforced on shipping releases.
+These changes are not yet enforced on shipping releases. The release that enforces each one depends on the use case.
+"Postponed" means the change will not be enabled in 27.3 and you don't need to adopt it for 27.3.
+
+Change                                         | NEURLFilter | Live Caller ID Lookup
+-----------------------------------------------|-------------|----------------------
+Per-request evaluation keys                    | 27.3        | 27.3
+Maximum shard count                            | 27.3        | Postponed
+Power-of-two shard count                       | 27.3        | 27.3
+Static service URLs in Info.plist              | 27.3        | Postponed
+User tier support removed                      | 27.3        | Postponed
+Config fetched via Apple infrastructure        | Postponed   | Postponed
 
 > Note: A [test profile](https://developer.apple.com/download/all/?q=Live%20Caller%20ID%20Lookup%20NEURLFilter)
-> is available for iOS and macOS 27.2 betas that activates the 27.3 behavior below early, so you can test your
-> adoption before it's enforced in 27.3.
+> is available for iOS and macOS 27.2 betas that activates the changes in the table above early, including the ones
+> postponed for Live Caller ID Lookup, so you can test your adoption before they're enforced. The only exception is
+> config fetched via Apple infrastructure, which the profile doesn't activate.
 
-* `Maximum shard count and power-of-two requirement` (iOS and macOS 27.3). The maximum number of shards is now
-  limited to 65,536, and the shard count must be a power of two (e.g. 256, 512, 1024, 2048). Configurations that
-  already meet both constraints are compatible with prior releases without any further changes; devices on iOS and
-  macOS 27.3 reject a shard count that exceeds the limit or isn't a power of two.
+* `Maximum shard count`. The maximum number of shards is now limited to 65,536. Configurations
+  that already meet this constraint are compatible with prior releases without any further changes; devices reject a
+  shard count that exceeds the limit.
 
-* `Per-request evaluation keys` (iOS and macOS 27.3). A query may now include a fresh evaluation key directly in the
+* `Power-of-two shard count`. The shard count must be a power of two (e.g. 256, 512, 1024, 2048).
+  Configurations that already meet this constraint are compatible with prior releases without any further changes;
+  devices reject a shard count that isn't a power of two.
+
+* `Per-request evaluation keys`. A query may now include a fresh evaluation key directly in the
   query payload as a fallback to uploading one ahead of time. See <doc:HTTPEndpoints> for the endpoint-level details.
 
-* `Config fetched via Apple infrastructure` (iOS and macOS 27.3). Clients fetch the unauthenticated `GET /config`
+* `Config fetched via Apple infrastructure`. Clients fetch the unauthenticated `GET /config`
   endpoint through Apple infrastructure rather than calling your service directly. Keep serving it with no
   `Authorization` or `User-Identifier` header, and expect caching to delay config propagation to clients.
   See <doc:HTTPEndpoints> for details.
 
   > Note: The test profile above does not activate this behavior early. Fetching through Apple infrastructure is
-  > not supported by the test profile on iOS and macOS 27.2 betas; you can only test this change once it's enforced
-  > in 27.3.
+  > not supported by the test profile on iOS and macOS 27.2 betas; you can only test this change once it's enforced.
 
-* `Static service URLs in Info.plist` (iOS and macOS 27.3). The service URL and Privacy Pass issuer URL must be
+* `Static service URLs in Info.plist`. The service URL and Privacy Pass issuer URL must be
   declared statically in an `NSPIRConfiguration` Info.plist entry, rather than provided dynamically at runtime. For
   Live Caller ID Lookup, add it to your app extension's Info.plist; for NEURLFilter, add it to your app's Info.plist.
   See <doc:Onboarding> for the required keys and how they map to your existing URLs.
 
-* `User tier support removed` (iOS and macOS 27.3). Devices no longer call `/token-key-for-user-token`; the system
+* `User tier support removed`. Devices no longer call `/token-key-for-user-token`; the system
   always uses the first valid key in the token issuer directory instead. See <doc:Authentication> for the current
   behavior and compatibility.
 

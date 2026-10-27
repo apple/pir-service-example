@@ -56,11 +56,11 @@ http://example.net/ - trailing '/' needs to be removed
 
 ##### Declaring URLs in Info.plist
 
-Starting in iOS and macOS 27.3, your service URL and Privacy Pass issuer URL must also be declared statically in an
-Info.plist, rather than provided only at runtime. Which Info.plist depends on the use case:
+Your service URL and Privacy Pass issuer URL must also be declared statically in an Info.plist, rather than provided
+only at runtime. Which Info.plist, and the release that enforces this, depend on the use case:
 
-* Live Caller ID Lookup: your app extension's Info.plist.
-* NEURLFilter: your app's Info.plist, not the URL filter extension's.
+* NEURLFilter: your app's Info.plist, not the URL filter extension's. Enforced starting in iOS and macOS 27.3.
+* Live Caller ID Lookup: your app extension's Info.plist. Postponed to a later release and not enforced in 27.3.
 
 Add a top-level `NSPIRConfiguration` dictionary with a `PIRServerURL` key and a `PrivacyPassIssuerURL` key; only a
 host is allowed (no custom paths, query parameters, or other components). How this interacts with values passed at
@@ -77,11 +77,11 @@ registration varies by use case, as described below:
 ```
 
 * Live Caller ID Lookup: `PIRServerURL` is equivalent to the `serviceURL` property and `PrivacyPassIssuerURL` is
-  equivalent to `tokenIssuerURL`. Both keys are required; devices on iOS and macOS 27.3 ignore any value passed at
+  equivalent to `tokenIssuerURL`. Both keys are required; once enforced, devices ignore any value passed at
   registration and use the Info.plist values instead.
 * NEURLFilter: `PIRServerURL` is equivalent to the `pirServerURL` property and `PrivacyPassIssuerURL` is equivalent to
   `pirPrivacyPassIssuerURL`. `PrivacyPassIssuerURL` is optional and defaults to the value of `PIRServerURL` when
-  absent; devices on iOS and macOS 27.3 reject any mismatch between runtime values and Info.plist.
+  absent; devices on iOS and macOS 27.3 and later reject any mismatch between runtime values and Info.plist.
 
 #### HTTP Bearer Token / UserToken
 The `userToken` field is of type `String` and the system sets the "Authorization" header like this:
