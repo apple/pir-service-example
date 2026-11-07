@@ -140,6 +140,11 @@ Method         | GET                                            | HTTP method.
 Path           | `/.well-known/private-token-issuer-directory`  | HTTP path.
 Response       | Token issuer directory                         | JSON object with an `issuer-request-uri` and a `token-keys` list. Each entry gives a `token-type` and the DER-encoded SubjectPublicKeyInfo (SPKI) public key as base64url.
 
+> Important: The system rejects a token issuer directory response larger than 16 KB (16,384 bytes). Keep the
+> directory under this limit, for example by advertising only the public keys that are currently valid and removing
+> expired ones. An oversized response may show up as devices abruptly ceasing all requests to the issuer, with no errors
+> on the service, and PIR queries dropping to a small residual from devices holding cached tokens.
+
 ### Fetch the token key for a user token
 Before the system can request Privacy Pass tokens, it needs to know which public key is associated with the user's
 tier. The system sends the user's HTTP Bearer token to this endpoint, and the service responds with the public key for
