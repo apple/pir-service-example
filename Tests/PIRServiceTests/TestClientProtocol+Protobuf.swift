@@ -15,11 +15,9 @@
 import HTTPTypes
 import Hummingbird
 import HummingbirdTesting
+import NIOFoundationEssentialsCompat
 @testable import PIRService
 import SwiftProtobuf
-#if !canImport(Darwin)
-import NIOFoundationCompat
-#endif
 import Util
 
 public extension TestClientProtocol {

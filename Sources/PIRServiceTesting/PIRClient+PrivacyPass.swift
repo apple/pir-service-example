@@ -13,10 +13,8 @@
 // limitations under the License.
 
 import Foundation
+import NIOFoundationEssentialsCompat
 import PrivacyPass
-#if !canImport(Darwin)
-import NIOFoundationCompat
-#endif
 
 extension PIRClient {
     func fetchTokenDirectory() async throws -> TokenIssuerDirectory {
