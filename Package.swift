@@ -35,6 +35,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-asn1.git", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-crypto.git", "3.10.0"..<"6.0.0"),
         .package(url: "https://github.com/apple/swift-homomorphic-encryption", branch: "release/1.1"),
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.105.0"),
         .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.38.1"),
         .package(url: "https://github.com/hummingbird-project/hummingbird", from: "2.0.0"),
         .package(url: "https://github.com/hummingbird-project/hummingbird-compression", from: "2.0.0"),
@@ -64,6 +65,7 @@ let package = Package(
                 "PIRService",
                 "PIRServiceTesting",
                 .product(name: "HummingbirdTesting", package: "hummingbird"),
+                .product(name: "NIOFoundationEssentialsCompat", package: "swift-nio"),
             ],
             swiftSettings: swiftSettings),
         .executableTarget(
@@ -103,6 +105,7 @@ let package = Package(
                 "PrivacyPass", "Util",
                 .product(name: "HomomorphicEncryptionProtobuf", package: "swift-homomorphic-encryption"),
                 .product(name: "HummingbirdTesting", package: "hummingbird"),
+                .product(name: "NIOFoundationEssentialsCompat", package: "swift-nio"),
                 .product(name: "PrivateInformationRetrievalProtobuf", package: "swift-homomorphic-encryption"),
             ],
             swiftSettings: swiftSettings),
